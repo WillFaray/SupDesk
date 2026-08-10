@@ -29,7 +29,7 @@ POST http://localhost:3000/chamados
 Content-Type: application/json
 
 {
-  "user_id": 2,
+  "user_id": 1,
   "title": "Sistema de arrecadação MALUCO do ar",
   "description": "Ao tentar emitir a guia, a página retorna erro 500."
 }
@@ -44,4 +44,4 @@ Content-Type: application/json
 }
 
 ### Excluir Chamado
-DELETE http://localhost:3000/chamados/4
+DELETE http://localhost:3000/chamados/8
