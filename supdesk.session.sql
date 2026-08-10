@@ -9,6 +9,7 @@ CREATE TABLE tickets (
     user_id INT REFERENCES users(id),
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(20) DEFAULT 'open' created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
