@@ -1,6 +1,8 @@
 ### Listar Usuários
 GET http://localhost:3000/usuarios
 
+### Listar Todos os Chamados
+GET http://localhost:3000/chamados
 
 ### Criar Usuário
 POST http://localhost:3000/usuarios
@@ -12,15 +14,26 @@ Content-Type: application/json
   "password_hash": "senha123"
 }
 
+### Criar Usuário Admin
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "admin@teste.com",
+  "password_hash": "senha123"
+}
+
 ### Criar Chamado
 POST http://localhost:3000/chamados
 Content-Type: application/json
 
 {
-  "user_id": 1,
-  "title": "Sistema de arrecadação fora do ar",
+  "user_id": 2,
+  "title": "Sistema de arrecadação MALUCO do ar",
   "description": "Ao tentar emitir a guia, a página retorna erro 500."
 }
+
 
 ### Atualizar Chamado
 PATCH http://localhost:3000/chamados/6
@@ -29,3 +42,6 @@ Content-Type: application/json
 {
   "status": "Em andamento"
 }
+
+### Excluir Chamado
+DELETE http://localhost:3000/chamados/4
