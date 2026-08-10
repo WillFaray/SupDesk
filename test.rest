@@ -1,8 +1,31 @@
+### Listar Usuários
+GET http://localhost:3000/usuarios
+
+
+### Criar Usuário
 POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
-    "username": "william",
-    "email": "william@example.com",
-    "password_hash": "senha123"
+  "username": "william",
+  "email": "william@teste.com",
+  "password_hash": "senha123"
+}
+
+### Criar Chamado
+POST http://localhost:3000/chamados
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "Sistema de arrecadação fora do ar",
+  "description": "Ao tentar emitir a guia, a página retorna erro 500."
+}
+
+### Atualizar Chamado
+PATCH http://localhost:3000/chamados/6
+Content-Type: application/json
+
+{
+  "status": "Em andamento"
 }
