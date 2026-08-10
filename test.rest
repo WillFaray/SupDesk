@@ -34,6 +34,14 @@ Content-Type: application/json
   "description": "Ao tentar emitir a guia, a página retorna erro 500."
 }
 
+### Fazer Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@teste.com",
+  "password": "senha123"
+}
 
 ### Atualizar Chamado
 PATCH http://localhost:3000/chamados/6

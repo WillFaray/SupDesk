@@ -1,1 +1,21 @@
+# Dependências
+node_modules/
+
+# Arquivos de log
+*.log
+npm-debug.log*
+
+# Compilação do TypeScript (arquivos gerados no futuro)
+dist/
+build/
+
+# Configurações locais e segredos (Senhas, chaves JWT)
+.env
+.env.local
+
+# Extensões e Sessões
 *.session.sql
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
