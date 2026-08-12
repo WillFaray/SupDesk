@@ -3,14 +3,16 @@ GET http://localhost:3000/usuarios
 
 ### Listar Todos os Chamados
 GET http://localhost:3000/chamados
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY1NTE3MDUsImV4cCI6MTc4NjU4MDUwNX0.AiLf99vkjQYn0RzLGoOiMZmHfyRcka-38LczzHEDU64
 
 ### Criar Usuário
 POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
-  "username": "william",
-  "email": "william@teste.com",
+  "username": "william_user",
+  "role": "user",
+  "email": "william_user@teste.com",
   "password_hash": "senha123"
 }
 
@@ -19,27 +21,37 @@ POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "email": "admin@teste.com",
-  "password_hash": "senha123"
+  "username": "william_admin",
+  "role": "admin",
+  "email": "william_admin@teste.com",
+  "password_hash": "senha1234"
 }
 
 ### Criar Chamado
 POST http://localhost:3000/chamados
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg2NTUzOTA2LCJleHAiOjE3ODY1ODI3MDZ9.a9oz8ylLdsGc_SXSQZcaQ3-1IML1afnVx9VSHfVXFls
 
 {
-  "user_id": 1,
   "title": "Sistema de arrecadação MALUCO do ar",
   "description": "Ao tentar emitir a guia, a página retorna erro 500."
 }
 
-### Fazer Login
+### Fazer Login Admin
 POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@teste.com",
+  "email": "william_admin@teste.com",
+  "password": "senha1234"
+}
+
+### Fazer Login Usuário
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "william_user@teste.com",
   "password": "senha123"
 }
 
@@ -52,4 +64,6 @@ Content-Type: application/json
 }
 
 ### Excluir Chamado
-DELETE http://localhost:3000/chamados/8
+DELETE http://localhost:3000/chamados/2
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg2NTUzOTA2LCJleHAiOjE3ODY1ODI3MDZ9.a9oz8ylLdsGc_SXSQZcaQ3-1IML1afnVx9VSHfVXFls

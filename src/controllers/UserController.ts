@@ -4,11 +4,11 @@ import bcrypt from 'bcrypt';
 
 export const CreateUser = async (req: express.Request, res: express.Response) => {
     try {
-        const { username, email, password_hash } = req.body;
+        const { username, email, password_hash, role } = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password_hash, saltRounds);
-        const query = 'INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3) RETURNING *';
-        const values = [username, email, hashedPassword];
+        const query = 'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *';
+        const values = [username, email, hashedPassword, role];
         const result = await pool.query(query, values);
         res.status(201).json(result.rows[0]);
     } catch (erro) {
