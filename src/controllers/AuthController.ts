@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../database.js';
 
-export const login = async (req: express.Request, res: express.Response) => {
+export const login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const { email, password } = req.body;
         const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -22,7 +22,7 @@ export const login = async (req: express.Request, res: express.Response) => {
         const token = jwt.sign({
             id: user.id, role: user.role
         },
-            'chave_secreta_supdesk_lol', { expiresIn: '8h' }
+            process.env.JWT_SECRET as string, { expiresIn: '8h' }
         );
 
         return res.status(200).json({
@@ -31,7 +31,6 @@ export const login = async (req: express.Request, res: express.Response) => {
             user: { id: user.id, username: user.username, role: user.role }
         });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao realizar login' });
+        next(error);
     }
 };

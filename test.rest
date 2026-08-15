@@ -3,7 +3,7 @@ GET http://localhost:3000/usuarios
 
 ### Listar Todos os Chamados
 GET http://localhost:3000/chamados
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY1NTE3MDUsImV4cCI6MTc4NjU4MDUwNX0.AiLf99vkjQYn0RzLGoOiMZmHfyRcka-38LczzHEDU64
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzI3MzYsImV4cCI6MTc4Njg2MTUzNn0.-0qs6HsMX-AeouQHSVQnMBzh9S_WEGGCkLW7Rln0PYw
 
 ### Criar Usuário
 POST http://localhost:3000/usuarios
@@ -11,8 +11,19 @@ Content-Type: application/json
 
 {
   "username": "william_user",
-  "role": "user",
+  "role": "usuario",
   "email": "william_user@teste.com",
+  "password_hash": "senha123"
+}
+
+### Criar Usuário errado
+POST http://localhost:3000/usuarios
+Content-Type: application/json
+
+{
+  "username": "william_error",
+  "role": "usuario",
+  "email": "william_error-teste.com",
   "password_hash": "senha123"
 }
 
@@ -30,11 +41,13 @@ Content-Type: application/json
 ### Criar Chamado
 POST http://localhost:3000/chamados
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg2NTUzOTA2LCJleHAiOjE3ODY1ODI3MDZ9.a9oz8ylLdsGc_SXSQZcaQ3-1IML1afnVx9VSHfVXFls
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzE1NjQsImV4cCI6MTc4Njg2MDM2NH0.afESZ8lK7OnGsRA8SI_WfQg-AS2N8VHpWOIexc5VFBQ
 
 {
-  "title": "Sistema de arrecadação MALUCO do ar",
-  "description": "Ao tentar emitir a guia, a página retorna erro 500."
+  "title": "queboru",
+  "priority": "a",
+  "category": "Software",
+  "description": " 500."
 }
 
 ### Fazer Login Admin

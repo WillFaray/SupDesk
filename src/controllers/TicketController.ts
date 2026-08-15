@@ -2,7 +2,7 @@ import express from 'express';
 import pool from '../database.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
 
-export const CreateTicket = async (req: AuthRequest, res: express.Response) => {
+export const CreateTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
     try {
         const user_id = req.user.id;
         const { title, description, priority, category } = req.body;
@@ -11,13 +11,14 @@ export const CreateTicket = async (req: AuthRequest, res: express.Response) => {
         const result = await pool.query(query, values);
         return res.status(201).json(result.rows[0]);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao criar chamado' });
+        next(error);
     }
 };
 
-export const listTickets = async (req: AuthRequest, res: express.Response) => {
+export const listTickets = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
     try {
+        throw new Error("Banco de dados começou a correr para longe da infraestrutura.");
+
         const { id, role } = req.user;
 
         let query = 'SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, tickets.updated_at, users.username AS autor_do_chamado, responsavel.username AS responsavel FROM tickets JOIN users AS autor ON tickets.user_id = users.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id ORDER BY tickets.created_at DESC';
@@ -33,12 +34,11 @@ export const listTickets = async (req: AuthRequest, res: express.Response) => {
         const result = await pool.query(query, values);
         return res.status(200).json(result.rows);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao buscar chamados' });
+        next(error);
     }
 };
 
-export const updateTicket = async (req: AuthRequest, res: express.Response) => {
+export const updateTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -59,12 +59,11 @@ export const updateTicket = async (req: AuthRequest, res: express.Response) => {
 
         return res.status(200).json(result.rows[0]);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao atualizar chamado' });
+        next(error);
     }
 }
 
-export const deleteTicket = async (req: AuthRequest, res: express.Response) => {
+export const deleteTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
     try {
         const { id } = req.params;
         const userRole = req.user.role;
@@ -82,7 +81,6 @@ export const deleteTicket = async (req: AuthRequest, res: express.Response) => {
         }
         return res.status(200).json({ message: 'Chamado excluído com sucesso' });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Erro ao excluir chamado' });
+        next(error);
     }
 };

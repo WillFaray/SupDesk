@@ -1,0 +1,9 @@
+import express from 'express';
+
+export const errorHandler = (err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(`[Erro Crítico] ${req.method} ${req.url} ->`, err.message);
+    return res.status(500).json({
+        status: 'error',
+        message: 'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.'
+    });
+}

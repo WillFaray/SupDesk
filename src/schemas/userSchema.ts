@@ -1,0 +1,8 @@
+import { z } from "zod";
+
+export const userSchema = z.object({
+    username: z.string().min(3, "Usuário deve ter no mínimo 3 caracteres").max(20, "Usuário deve ter no máximo 20 caracteres"),
+    email: z.string().email("Email inválido"),
+    password_hash: z.string().min(8, "Senha deve ter no mínimo 8 caracteres"),
+    role: z.enum(["admin", "usuario", "analista"]).optional()
+});

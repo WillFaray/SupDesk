@@ -21,7 +21,7 @@ export const verifyToken = (req: AuthRequest, res: express.Response, next: expre
     const [, token] = tokenParts;
 
     try {
-        const decoded = jwt.verify(token, 'chave_secreta_supdesk_lol');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
         req.user = decoded;
         return next();
     } catch (error) {
