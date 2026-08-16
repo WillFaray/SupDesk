@@ -1,9 +1,17 @@
 ### Listar Usuários
 GET http://localhost:3000/usuarios
 
-### Listar Todos os Chamados
+### Listar TODOS os chamados (padrão: 10 itens da página 1)
 GET http://localhost:3000/chamados
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzI3MzYsImV4cCI6MTc4Njg2MTUzNn0.-0qs6HsMX-AeouQHSVQnMBzh9S_WEGGCkLW7Rln0PYw
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzkwMjQsImV4cCI6MTc4Njg2NzgyNH0.VH57Dd6UosNW4t-E1kh2hp0lLaLn_RaCvmevTTxezGM
+
+### Listar apenas chamados Abertos (Filtro simples)
+GET http://localhost:3000/chamados?status=Aberto
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzQyODYsImV4cCI6MTc4Njg2MzA4Nn0.ON2sXKVnMOQXQp_vUqaL1Lkv6w0Y4k15-FSA4GR2NrE
+
+### Listar com múltiplos filtros e paginação (Página 2, limite de 5 por página)
+GET http://localhost:3000/chamados?status=Aberto&priority=Alta&page=2&limit=5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzQyODYsImV4cCI6MTc4Njg2MzA4Nn0.ON2sXKVnMOQXQp_vUqaL1Lkv6w0Y4k15-FSA4GR2NrE
 
 ### Criar Usuário
 POST http://localhost:3000/usuarios
@@ -41,13 +49,14 @@ Content-Type: application/json
 ### Criar Chamado
 POST http://localhost:3000/chamados
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzE1NjQsImV4cCI6MTc4Njg2MDM2NH0.afESZ8lK7OnGsRA8SI_WfQg-AS2N8VHpWOIexc5VFBQ
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzQ0MTgsImV4cCI6MTc4Njg2MzIxOH0.wxc81a3uS-bNRh8ZfSC_wvHKJvE55J6ZSZLgowO8t-c
 
 {
-  "title": "queboru",
-  "priority": "a",
-  "category": "Software",
-  "description": " 500."
+  "title": "huehuebrbr",
+  "status": "Em andamento",
+  "priority": "Baixa",
+  "category": "Outros",
+  "description": "if you really wanna know what they doing in tokyo"
 }
 
 ### Fazer Login Admin
@@ -80,3 +89,16 @@ Content-Type: application/json
 DELETE http://localhost:3000/chamados/2
 Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg2NTUzOTA2LCJleHAiOjE3ODY1ODI3MDZ9.a9oz8ylLdsGc_SXSQZcaQ3-1IML1afnVx9VSHfVXFls
+
+### Adicionar Comentário no Chamado
+POST http://localhost:3000/chamados/5/comentarios
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzkwMjQsImV4cCI6MTc4Njg2NzgyNH0.VH57Dd6UosNW4t-E1kh2hp0lLaLn_RaCvmevTTxezGM
+
+{
+  "message": "Olá, já reiniciei o computador e o problema persiste. Podem me ajudar?"
+}
+
+### Listar Comentários de um Chamado
+GET http://localhost:3000/chamados/5/comentarios
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8

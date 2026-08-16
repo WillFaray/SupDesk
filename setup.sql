@@ -13,7 +13,7 @@ CREATE TABLE users (
 -- Cria a tabela de chamados
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(i+d) ON DELETE CASCADE,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(20) DEFAULT 'Aberto',
@@ -22,4 +22,12 @@ CREATE TABLE tickets (
     responsavel_id INTEGER REFERENCES users(id) ON DELETE
     SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+-- Cria a tabela de comentários dos chamados
+CREATE TABLE IF NOT EXISTS ticket_comments (
+    id SERIAL PRIMARY KEY,
+    ticket_id INTEGER REFERENCES tickets(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
