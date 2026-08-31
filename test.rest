@@ -102,3 +102,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6I
 ### Listar Comentários de um Chamado
 GET http://localhost:3000/chamados/5/comentarios
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8
+
+### Buscar Chamado Específico por ID
+GET http://localhost:3000/chamados/5
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8
+
+### Atualizar Perfil de Usuário
+PUT http://localhost:3000/usuarios
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8
+
+{
+  "username": "novo_username",
+  "email": "novo_email@teste.com"
+}
+
+### Atualizar apenas senha do usuário
+PUT http://localhost:3000/usuarios
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8
+
+{
+  "password_hash": "nova_senha_super_segura"
+}
+
+### Fazer Logout
+POST http://localhost:3000/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8

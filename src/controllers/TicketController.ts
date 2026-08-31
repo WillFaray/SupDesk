@@ -152,3 +152,45 @@ export const listarComentarios = async (req: AuthRequest, res: express.Response,
         next(error);
     }
 }
+
+export const getTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+    try {
+        const { id } = req.params;
+        const { role, id: userId } = req.user;
+
+        let query = `
+            SELECT 
+                tickets.id, 
+                tickets.title, 
+                tickets.description, 
+                tickets.status, 
+                tickets.priority, 
+                tickets.category, 
+                tickets.created_at,
+                tickets.updated_at,
+                autor.username AS autor_do_chamado,
+                responsavel.username AS responsavel 
+            FROM tickets 
+            JOIN users AS autor ON tickets.user_id = autor.id 
+            LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id 
+            WHERE tickets.id = $1`;
+
+        const values = [id];
+
+        // Usuários comuns só podem ver seus próprios tickets
+        if (role === 'user') {
+            query += ' AND tickets.user_id = $2';
+            values.push(userId);
+        }
+
+        const result = await pool.query(query, values);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Chamado não encontrado' });
+        }
+
+        return res.status(200).json(result.rows[0]);
+    } catch (error) {
+        next(error);
+    }
+};

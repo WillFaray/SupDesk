@@ -8,12 +8,13 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role VARCHAR(20) DEFAULT 'usuario',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Cria a tabela de chamados
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(i+d) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
     status VARCHAR(20) DEFAULT 'Aberto',
@@ -21,7 +22,8 @@ CREATE TABLE tickets (
     category VARCHAR(50) DEFAULT 'Outros',
     responsavel_id INTEGER REFERENCES users(id) ON DELETE
     SET NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Cria a tabela de comentários dos chamados
 CREATE TABLE IF NOT EXISTS ticket_comments (

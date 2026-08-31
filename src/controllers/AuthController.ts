@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../database.js';
+import type { AuthRequest } from '../middlewares/authMiddleware.js';
 
 export const login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
@@ -29,6 +30,17 @@ export const login = async (req: express.Request, res: express.Response, next: e
             message: 'Login bem-sucedido',
             token,
             user: { id: user.id, username: user.username, role: user.role }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const logout = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+    try {
+        return res.status(200).json({
+            message: 'Logout realizado com sucesso',
+            token: null
         });
     } catch (error) {
         next(error);

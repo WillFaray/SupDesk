@@ -1,14 +1,26 @@
 import express from 'express';
+import cors from 'cors';
 import userRoutes from './routes/userRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import 'dotenv/config';
 import { errorHandler } from './middlewares/erroHandler.js';
+import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
+
+// Validar variáveis de ambiente obrigatórias
+if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET não definido em .env');
+}
 
 const app = express();
 const porta = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    credentials: true
+}));
+app.use(apiLimiter);
 app.use('/usuarios', userRoutes);
 app.use('/chamados', ticketRoutes);
 app.use('/auth', authRoutes);
