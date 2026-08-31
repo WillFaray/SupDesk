@@ -1,0 +1,110 @@
+/* ==========================================================================
+   SUPDESK — design tokens
+   Tema claro por padrão; mundo escuro via [data-theme="dark"].
+   Superfícies planas, hairlines discretas, UM acento, status em pontos chapados.
+   ========================================================================== */
+
+:root {
+  /* --- Superfícies (claro) --- */
+  --ground-0: #f6f7f9; /* fundo */
+  --ground-1: #ffffff; /* painel */
+  --ground-2: #f1f3f6; /* painel elevado / hover */
+  --ground-3: #e6e9ef; /* hover mais claro */
+
+  /* --- Hairlines --- */
+  --hairline: rgba(17, 24, 39, 0.08);
+  --hairline-strong: rgba(17, 24, 39, 0.18);
+
+  /* --- Texto --- */
+  --ink-strong: #111827;
+  --ink: #374151;
+  --ink-muted: #6b7280;
+  --ink-faint: #9aa3b2;
+
+  /* --- Acento único (uso contido) --- */
+  --accent: #3563e9;
+  --accent-soft: rgba(53, 99, 233, 0.1);
+  --accent-contrast: #ffffff;
+
+  /* --- Status (pontos chapados, sem glow) --- */
+  --lamp-aberto: #3563e9;
+  --lamp-andamento: #d97706;
+  --lamp-resolvido: #16a34a;
+  --lamp-vermelha: #dc2626;
+  --lamp-apagada: #c4ccd8;
+
+  /* --- Prioridade --- */
+  --prio-baixa: #0f766e;
+  --prio-media: #d97706;
+  --prio-alta: #dc2626;
+
+  /* --- Categoria (tons contidos) --- */
+  --cat-hardware: #4f6df5;
+  --cat-software: #7c5cd6;
+  --cat-rede: #0e9488;
+  --cat-outros: #64748b;
+
+  /* --- Tipografia --- */
+  --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
+  --font-ui: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* --- Métrica --- */
+  --hair: 1px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+
+  /* --- Focus --- */
+  --focus: 0 0 0 2px var(--ground-0), 0 0 0 4px var(--accent);
+
+  /* --- Motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 120ms;
+  --t-med: 220ms;
+
+  color-scheme: light;
+}
+
+/* --- Mundo escuro (opt-in via toggle; inicial = prefers-color-scheme) --- */
+[data-theme='dark'] {
+  --ground-0: #0f1115;
+  --ground-1: #16181d;
+  --ground-2: #1d2026;
+  --ground-3: #262a31;
+
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+
+  --ink-strong: #e8eaed;
+  --ink: #b6bcc6;
+  --ink-muted: #868d99;
+  --ink-faint: #5c6470;
+
+  --accent: #6c9ef8;
+  --accent-soft: rgba(108, 158, 248, 0.12);
+  --accent-contrast: #0f1115;
+
+  --lamp-aberto: #7aa5f8;
+  --lamp-andamento: #d9a648;
+  --lamp-resolvido: #5fb877;
+  --lamp-vermelha: #e06c5f;
+  --lamp-apagada: #454c56;
+
+  --prio-baixa: #5fae8f;
+  --prio-media: #d9a648;
+  --prio-alta: #e06c5f;
+
+  --cat-hardware: #7fa3d9;
+  --cat-software: #a68fd0;
+  --cat-rede: #6fb3ab;
+  --cat-outros: #9aa2ad;
+
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

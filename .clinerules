@@ -1,0 +1,5 @@
+# Impeccable Integration
+
+Você tem acesso ao conjunto de habilidades do Impeccable localizado na pasta de skills do projeto.
+
+Sempre que eu enviar comandos como `/impeccable init`, `/impeccable audit`, `/impeccable polish`, `/impeccable critique`, leia a instrução correspondente dentro da pasta de skills e siga rigorosamente as diretrizes e os arquivos `DESIGN.md` e `PRODUCT.md`.

@@ -1,0 +1,154 @@
+/* ==========================================================================
+   COMPONENTES — pontos de status, chips, botões, abas e selects de filtro
+   ========================================================================== */
+
+/* --- Ponto de status (flat, sem glow) --- */
+.lamp {
+  --lamp-color: var(--lamp-apagada);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lamp-color);
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+.lamp--acesa {
+  opacity: 1;
+}
+
+/* --- Chips (categoria, prioridade, status) --- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* --- Botões (flat) --- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  border: var(--hair) solid var(--hairline-strong);
+  background: var(--ground-2);
+  color: var(--ink-strong);
+  padding: 8px 14px;
+  transition: background var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+}
+.btn .ic {
+  width: 15px;
+  height: 15px;
+}
+.btn:hover {
+  background: var(--ground-3);
+}
+.btn--primario {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn--primario:hover {
+  background: color-mix(in srgb, var(--accent) 88%, black);
+  border-color: transparent;
+}
+.btn--perigo {
+  color: var(--lamp-vermelha);
+  border-color: var(--hairline-strong);
+}
+.btn--perigo:hover {
+  background: color-mix(in srgb, var(--lamp-vermelha) 10%, transparent);
+}
+.btn--fantasma {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+.btn--fantasma:hover {
+  color: var(--ink-strong);
+  background: var(--ground-2);
+}
+.btn--sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn--block {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* --- Barra de filtros: abas + selects compactos --- */
+.filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: var(--hair) solid var(--hairline);
+  margin-bottom: -1px;
+}
+.tab {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ink-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color var(--t-fast) var(--ease-out), border-color var(--t-fast) var(--ease-out);
+}
+.tab:hover {
+  color: var(--ink-strong);
+}
+.tab[aria-pressed='true'] {
+  color: var(--ink-strong);
+  border-bottom-color: var(--accent);
+}
+
+.filters__selects {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+.select {
+  appearance: none;
+  background: var(--ground-1);
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 6px 30px 6px 10px;
+  font-size: 13px;
+  color: var(--ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+.select:hover {
+  border-color: var(--hairline-strong);
+}
+.select:focus {
+  border-color: var(--hairline-strong);
+  outline: none;
+}
+
+@media (max-width: 720px) {
+  .filters__selects {
+    width: 100%;
+    margin-left: 0;
+  }
+  .filters__selects .select {
+    flex: 1;
+  }
+}

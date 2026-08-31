@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f6f7f9" />
+    <title>SupDesk · Chamados</title>
+    <script>
+      // Tema: opt-in salvo; sem escolha, segue o sistema. Executa antes do paint.
+      (function () {
+        var t = localStorage.getItem('supdesk-theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+  </head>
+  <body>
+    <!--
+      DIRECTION CONTRACT — SupDesk (destilado, claro por padrão)
+      THESIS: um help desk interno simples; a fila é uma lista legível, não um painel de instrumentos
+      nem um mural de cards. Clean, sóbrio, minimalista moderno.
+      OWN-WORLD: tema claro por padrão (superfícies brancas/neutras, hairlines discretas, UM acento azul
+      #3563e9, status como pontos chapados), mundo escuro opt-in via [data-theme="dark"] com toggle no mastro.
+      TIPO: Space Grotesk para display, DM Sans para UI, DM Mono para leituras técnicas.
+      STORY: cada papel enxerga só o que precisa; analista tria, funcionário acompanha.
+      FIRST VIEWPORT: topo com título "Chamados", contagem total e "+ Novo chamado";
+      abas Todos / Meus chamados / Em aberto + selects compactos de categoria e prioridade; fila como lista plana.
+      FORM: minimalismo funcional (distill sobre o mundo sorteado 0714d760).
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict,
+      DESIGN.md, and every shipping raster carrying its provenance.
+    -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+import type { ReactNode } from 'react';
+import type { Prioridade, Status } from '../lib/types';
+import type { Categoria } from '../lib/types';
+
+/* --- Lâmpada pura --- */
+export function Lamp({ cor, acesa = true, size = 10 }: { cor: string; acesa?: boolean; size?: number }) {
+  return (
+    <span
+      className={`lamp${acesa ? ' lamp--acesa' : ''}`}
+      style={{ width: size, height: size, ['--lamp-color' as string]: cor }}
+      aria-hidden="true"
+    />
+  );
+}
+
+/* --- Cor de estado --- */
+export const corStatus: Record<Status, { cor: string; acesa: boolean }> = {
+  Aberto: { cor: 'var(--lamp-azul)', acesa: false },
+  'Em andamento': { cor: 'var(--lamp-amar)', acesa: true },
+  Resolvido: { cor: 'var(--lamp-verde)', acesa: true },
+};
+
+export const corPrioridade: Record<Prioridade, string> = {
+  Baixa: 'var(--prio-baixa)',
+  Média: 'var(--prio-media)',
+  Alta: 'var(--prio-alta)',
+};
+
+export const corCategoria: Record<Categoria, string> = {
+  Hardware: 'var(--cat-hardware)',
+  Software: 'var(--cat-software)',
+  Rede: 'var(--cat-rede)',
+  Outros: 'var(--cat-outros)',
+};
+
+export function LampStatus({ status }: { status: Status }) {
+  const { cor, acesa } = corStatus[status];
+  return <Lamp cor={cor} acesa={acesa} />;
+}
+
+export function Chip({ children, cor }: { children: ReactNode; cor?: string }) {
+  return (
+    <span className="chip">
+      {cor && <Lamp cor={cor} acesa />}
+      {children}
+    </span>
+  );
+}

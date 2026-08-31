@@ -1,0 +1,110 @@
+/* ==========================================================================
+   LOGIN — a bancada de acesso
+   ========================================================================== */
+
+.login {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.login__face {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px;
+  background: var(--ground-1);
+  border-right: var(--hair) solid var(--hairline);
+}
+
+.login__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--ink-strong);
+  margin-bottom: 8px;
+}
+
+.login__tagline {
+  font-size: 14px;
+  color: var(--ink-muted);
+  margin-bottom: 40px;
+  max-width: 34ch;
+}
+
+.login__readout {
+  margin-top: auto;
+  border-top: var(--hair) solid var(--hairline);
+  padding-top: 16px;
+  display: flex;
+  gap: 24px;
+}
+.login__readout div {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 380px;
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--ground-1);
+  padding: 28px;
+}
+.login__card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  margin-bottom: 2px;
+}
+.login__card-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-bottom: 22px;
+}
+.login__demo-hint {
+  margin-top: 18px;
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  background: var(--ground-2);
+}
+
+@media (max-width: 720px) {
+  .login {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .login__face {
+    padding: 28px 24px 20px;
+    border-right: none;
+    border-bottom: var(--hair) solid var(--hairline);
+  }
+  .login__face .login__tagline,
+  .login__readout {
+    display: none;
+  }
+  .login__mark {
+    font-size: 18px;
+    margin-bottom: 0;
+  }
+  .login__panel {
+    padding: 20px;
+  }
+}
