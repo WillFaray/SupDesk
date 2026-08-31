@@ -11,7 +11,7 @@ function temaAtual(): Tema {
 }
 
 export function Masthead() {
-  const { user, demo, sair } = useAuth();
+  const { user, sair } = useAuth();
   const navigate = useNavigate();
   const [tema, setTema] = useState<Tema>(temaAtual);
 
@@ -26,9 +26,6 @@ export function Masthead() {
     <header className="masthead">
       <div className="masthead__brand">
         <span className="masthead__mark">SupDesk</span>
-        <span className={`masthead__chip${demo ? ' masthead__demo' : ''}`}>
-          {demo ? 'Demo' : 'Operação'}
-        </span>
       </div>
 
       <div className="masthead__search" role="search">

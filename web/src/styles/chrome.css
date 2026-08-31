@@ -24,33 +24,24 @@
 }
 
 .masthead__brand {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  /* Ocupa exatamente a largura do rail, com a marca centrada sobre ele */
+  width: 216px;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -20px; /* compensa o padding do mastro */
+  align-self: stretch;
+  border-right: var(--hair) solid var(--hairline);
 }
 
 .masthead__mark {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: -0.01em;
+  font-size: 21px;
+  letter-spacing: -0.02em;
   color: var(--ink-strong);
   user-select: none;
-}
-
-.masthead__chip {
-  font-size: 11px;
-  color: var(--ink-muted);
-  border: var(--hair) solid var(--hairline);
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.masthead__demo {
-  color: var(--accent);
-  border-color: var(--hairline-strong);
-  background: var(--accent-soft);
 }
 
 .masthead__search {
@@ -123,6 +114,12 @@
 }
 
 @media (max-width: 860px) {
+  .masthead__brand {
+    width: auto;
+    margin-left: 0;
+    border-right: none;
+    justify-content: flex-start;
+  }
   .masthead__search {
     display: none;
   }
@@ -186,6 +183,40 @@
   background: var(--ground-3);
   border-radius: 999px;
   padding: 1px 8px;
+}
+
+/* --- Troca temporária de papel (rodapé do rail) --- */
+.rail__foot {
+  margin-top: auto;
+  border-top: var(--hair) solid var(--hairline);
+  padding-top: 10px;
+}
+
+.rail__roles {
+  display: flex;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.rail__role {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: var(--radius-sm);
+  border: var(--hair) solid var(--hairline);
+  background: var(--ground-0);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.rail__role:hover {
+  border-color: var(--hairline-strong);
+  color: var(--ink-strong);
+}
+.rail__role[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* --- Região central --- */

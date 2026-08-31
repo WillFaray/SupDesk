@@ -46,8 +46,8 @@ export function LoginView() {
           numa única bancada de operação.
         </p>
         <div className="login__readout">
-          <div><Lamp cor="var(--lamp-verde)" /> 24h de registro</div>
-          <div><Lamp cor="var(--lamp-amar)" /> fila ao vivo</div>
+          <div><Lamp cor="var(--lamp-resolvido)" acesa /> 24h de registro</div>
+          <div><Lamp cor="var(--lamp-andamento)" acesa /> fila ao vivo</div>
         </div>
       </section>
 

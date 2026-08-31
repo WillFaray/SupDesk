@@ -22,27 +22,27 @@
   --ink-faint: #9aa3b2;
 
   /* --- Acento único (uso contido) --- */
-  --accent: #3563e9;
-  --accent-soft: rgba(53, 99, 233, 0.1);
+  --accent: #3b6fe0;
+  --accent-soft: rgba(59, 111, 224, 0.09);
   --accent-contrast: #ffffff;
 
-  /* --- Status (pontos chapados, sem glow) --- */
-  --lamp-aberto: #3563e9;
-  --lamp-andamento: #d97706;
-  --lamp-resolvido: #16a34a;
-  --lamp-vermelha: #dc2626;
-  --lamp-apagada: #c4ccd8;
+  /* --- Status (pontos chapados; azul amarra no acento, demais na mesma luminosidade) --- */
+  --lamp-aberto: var(--accent);
+  --lamp-andamento: #c9884a;
+  --lamp-resolvido: #3f9e6e;
+  --lamp-vermelha: #d15b52;
+  --lamp-apagada: #c3cad4;
 
-  /* --- Prioridade --- */
-  --prio-baixa: #0f766e;
-  --prio-media: #d97706;
-  --prio-alta: #dc2626;
+  /* --- Prioridade (alinha com status: verde/âmbar/vermelho) --- */
+  --prio-baixa: #3f9e6e;
+  --prio-media: #c9884a;
+  --prio-alta: #d15b52;
 
-  /* --- Categoria (tons contidos) --- */
-  --cat-hardware: #4f6df5;
-  --cat-software: #7c5cd6;
-  --cat-rede: #0e9488;
-  --cat-outros: #64748b;
+  /* --- Categoria (derivadas do acento/inks — harmonia garantida nos dois temas) --- */
+  --cat-hardware: color-mix(in srgb, var(--accent) 55%, var(--ink-muted));
+  --cat-software: #8a76cf;
+  --cat-rede: #3f9e94;
+  --cat-outros: #7b8694;
 
   /* --- Tipografia --- */
   --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
@@ -80,24 +80,24 @@
   --ink-muted: #868d99;
   --ink-faint: #5c6470;
 
-  --accent: #6c9ef8;
-  --accent-soft: rgba(108, 158, 248, 0.12);
+  --accent: #7da4f5;
+  --accent-soft: rgba(125, 164, 245, 0.13);
   --accent-contrast: #0f1115;
 
-  --lamp-aberto: #7aa5f8;
-  --lamp-andamento: #d9a648;
-  --lamp-resolvido: #5fb877;
-  --lamp-vermelha: #e06c5f;
+  --lamp-aberto: var(--accent);
+  --lamp-andamento: #d9a662;
+  --lamp-resolvido: #6cbf90;
+  --lamp-vermelha: #e07a70;
   --lamp-apagada: #454c56;
 
-  --prio-baixa: #5fae8f;
-  --prio-media: #d9a648;
-  --prio-alta: #e06c5f;
+  --prio-baixa: #6cbf90;
+  --prio-media: #d9a662;
+  --prio-alta: #e07a70;
 
-  --cat-hardware: #7fa3d9;
-  --cat-software: #a68fd0;
-  --cat-rede: #6fb3ab;
-  --cat-outros: #9aa2ad;
+  --cat-hardware: color-mix(in srgb, var(--accent) 55%, var(--ink-muted));
+  --cat-software: #a995d8;
+  --cat-rede: #66b5aa;
+  --cat-outros: #98a1ac;
 
   color-scheme: dark;
 }

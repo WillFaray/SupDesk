@@ -120,6 +120,14 @@ export function useUsuarios() {
 }
 
 /* Ações mutantes — retornam o chamado atualizado. */
+export async function listarComentarios(id: number): Promise<Comentario[]> {
+  if (IS_DEMO) {
+    await delay(120);
+    return demoComentarios[id] ?? [];
+  }
+  return api.listarComentarios(id);
+}
+
 export async function atualizarStatus(id: number, status: Chamado['status']): Promise<Chamado> {
   if (!IS_DEMO) return api.atualizarStatus(id, status);
   await delay(240);

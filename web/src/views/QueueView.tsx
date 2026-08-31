@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, podeResolver } from '../lib/auth';
 import { useChamados, atualizarStatus } from '../lib/data';
 import { QueueTable } from '../components/QueueTable';
+import { FilterSelect } from '../components/FilterSelect';
 import { Icon } from '../components/Icon';
 import type { Chamado, Status } from '../lib/types';
 
@@ -89,22 +90,18 @@ export function QueueView() {
         </div>
 
         <div className="filters__selects">
-          <select
-            className="select"
-            aria-label="Filtrar por categoria"
-            value={categoria}
-            onChange={(e) => setCategoria(e.target.value as Chamado['category'] | 'Todas')}
-          >
-            {CATEGORIAS.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <select
-            className="select"
-            aria-label="Filtrar por prioridade"
-            value={prioridade}
-            onChange={(e) => setPrioridade(e.target.value as Chamado['priority'] | 'Todas')}
-          >
-            {PRIORIDADES.map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <FilterSelect
+            label="Categoria"
+            opcoes={CATEGORIAS.map((c) => ({ valor: c, label: c }))}
+            valor={categoria}
+            onChange={setCategoria}
+          />
+          <FilterSelect
+            label="Prioridade"
+            opcoes={PRIORIDADES.map((p) => ({ valor: p, label: p }))}
+            valor={prioridade}
+            onChange={setPrioridade}
+          />
         </div>
       </div>
 

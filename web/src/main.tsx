@@ -20,6 +20,8 @@ import './styles/base.css';
 import './styles/chrome.css';
 import './styles/components.css';
 import './styles/queue.css';
+import './styles/users.css';
+import './styles/board.css';
 import './styles/login.css';
 import './styles/forms.css';
 import './styles/detail.css';

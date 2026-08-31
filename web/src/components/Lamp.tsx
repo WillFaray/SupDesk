@@ -15,9 +15,9 @@ export function Lamp({ cor, acesa = true, size = 10 }: { cor: string; acesa?: bo
 
 /* --- Cor de estado --- */
 export const corStatus: Record<Status, { cor: string; acesa: boolean }> = {
-  Aberto: { cor: 'var(--lamp-azul)', acesa: false },
-  'Em andamento': { cor: 'var(--lamp-amar)', acesa: true },
-  Resolvido: { cor: 'var(--lamp-verde)', acesa: true },
+  Aberto: { cor: 'var(--lamp-aberto)', acesa: false },
+  'Em andamento': { cor: 'var(--lamp-andamento)', acesa: true },
+  Resolvido: { cor: 'var(--lamp-resolvido)', acesa: true },
 };
 
 export const corPrioridade: Record<Prioridade, string> = {

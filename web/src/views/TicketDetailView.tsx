@@ -81,7 +81,7 @@ export function TicketDetailView() {
           {data.status}
         </UpdateBox>
         <UpdateBox label="Responsável">
-          <Lamp cor={data.responsavel ? 'var(--lamp-verde)' : 'var(--lamp-apagada)'} acesa={!!data.responsavel} size={8} />
+          <Lamp cor={data.responsavel ? 'var(--lamp-resolvido)' : 'var(--lamp-apagada)'} acesa={!!data.responsavel} size={8} />
           {data.responsavel ?? 'Aguardando triagem'}
         </UpdateBox>
         <UpdateBox label="Aberto em">{txHora(data.created_at)}</UpdateBox>

@@ -122,25 +122,78 @@
   gap: 8px;
   margin-left: auto;
 }
-.select {
-  appearance: none;
+
+/* --- Dropdown de filtro (no tema, substitui o select nativo) --- */
+.fselect {
+  position: relative;
+}
+.fselect__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--ground-1);
   border: var(--hair) solid var(--hairline);
   border-radius: var(--radius-sm);
-  padding: 6px 30px 6px 10px;
+  padding: 6px 10px 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  transition: border-color var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+}
+.fselect__btn .ic {
+  color: var(--ink-faint);
+}
+.fselect__btn:hover,
+.fselect__btn[aria-expanded='true'] {
+  border-color: var(--hairline-strong);
+  color: var(--ink-strong);
+}
+.fselect__btn.is-set {
+  color: var(--ink-strong);
+  border-color: var(--hairline-strong);
+  background: var(--ground-2);
+}
+
+.fselect__pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: max(100%, 168px);
+  background: var(--ground-1);
+  border: var(--hair) solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(15, 17, 21, 0.12);
+}
+[data-theme='dark'] .fselect__pop {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.fselect__opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 4px;
   font-size: 13px;
   color: var(--ink);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  transition: border-color var(--t-fast) var(--ease-out);
+  transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
 }
-.select:hover {
-  border-color: var(--hairline-strong);
+.fselect__opt:hover {
+  background: var(--ground-2);
+  color: var(--ink-strong);
 }
-.select:focus {
-  border-color: var(--hairline-strong);
-  outline: none;
+.fselect__opt[aria-selected='true'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+.fselect__opt .ic {
+  color: var(--accent);
 }
 
 @media (max-width: 720px) {
@@ -148,7 +201,11 @@
     width: 100%;
     margin-left: 0;
   }
-  .filters__selects .select {
+  .filters__selects .fselect {
     flex: 1;
+  }
+  .fselect__btn {
+    justify-content: space-between;
+    width: 100%;
   }
 }

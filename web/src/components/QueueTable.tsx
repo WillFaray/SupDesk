@@ -22,7 +22,7 @@ export function QueueTable({
         <span className="qcol--espera">Espera</span>
         <span className="qcol--autor">Autor</span>
         <span className="qcol--cat">Categoria</span>
-        <span>Status</span>
+        <span className="qcol--status">Status</span>
         <span className="qcol--acoes">Ações</span>
       </div>
 
@@ -58,7 +58,7 @@ export function QueueTable({
               <Chip cor={corCategoria[c.category]}>{c.category}</Chip>
             </div>
 
-            <div className="queue__cell">
+            <div className="queue__cell qcol--status">
               <span className="queue__status">
                 <Lamp cor={corStatus[c.status].cor} acesa={corStatus[c.status].acesa} size={8} />
                 {c.status}

@@ -1,6 +1,6 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { UsuarioLogado } from './types';
+import type { Role, UsuarioLogado } from './types';
 
 export const IS_DEMO = (import.meta.env.VITE_DEMO as string) === 'true';
 
@@ -9,6 +9,8 @@ interface AuthCtx {
   demo: boolean;
   entrar: (u: UsuarioLogado) => void;
   sair: () => void;
+  /** Troca temporária de papel (ferramenta de demonstração/dev). */
+  trocarPapel: (r: Role) => void;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -37,9 +39,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('supdesk_user');
         localStorage.removeItem('supdesk_token');
       },
+      trocarPapel: (r) => {
+        setUser((u) => (u ? { ...u, role: r } : u));
+      },
     }),
     [user],
   );
+
+  // Persistência (cobre também a troca temporária de papel).
+  useEffect(() => {
+    if (user) localStorage.setItem('supdesk_user', JSON.stringify(user));
+  }, [user]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
