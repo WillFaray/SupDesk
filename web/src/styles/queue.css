@@ -34,9 +34,11 @@
   border-bottom: var(--hair) solid var(--hairline);
   transition: background var(--t-fast) var(--ease-out);
 }
+
 .queue__row:last-child {
   border-bottom: none;
 }
+
 .queue__row:hover {
   background: color-mix(in srgb, var(--ink-strong) 4%, transparent);
 }
@@ -63,10 +65,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .queue__title a {
   text-decoration: none;
   color: inherit;
 }
+
 .queue__title a:hover {
   color: var(--accent);
 }
@@ -77,16 +81,22 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
+
 .queue__wait--atrasada {
   color: var(--lamp-vermelha);
+}
+
+.queue__cat {
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 .queue__status {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink);
   white-space: nowrap;
 }
@@ -96,6 +106,7 @@
   gap: 4px;
   justify-content: flex-end;
 }
+
 .queue__actions .btn {
   padding: 4px 8px;
   font-size: 11px;
@@ -108,10 +119,12 @@
 }
 
 @media (max-width: 1100px) {
+
   .queue__head,
   .queue__row {
     grid-template-columns: 64px minmax(160px, 1fr) 88px 104px 128px;
   }
+
   .queue__head .qcol--autor,
   .queue__row .qcol--autor,
   .queue__head .qcol--cat,
@@ -121,10 +134,12 @@
 }
 
 @media (max-width: 720px) {
+
   .queue__head,
   .queue__row {
     grid-template-columns: 52px minmax(0, 1fr) 92px 96px;
   }
+
   .queue__head .qcol--espera,
   .queue__row .qcol--espera,
   .queue__head .qcol--autor,

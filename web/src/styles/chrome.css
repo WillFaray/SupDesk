@@ -155,6 +155,7 @@
   border-radius: var(--radius-sm);
   color: var(--ink);
   font-size: 13.5px;
+  text-decoration: none;
   border: var(--hair) solid transparent;
   transition: background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
 }

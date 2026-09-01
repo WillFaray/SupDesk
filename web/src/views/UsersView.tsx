@@ -1,15 +1,7 @@
 import { useUsuarios } from '../lib/data';
 import { Icon } from '../components/Icon';
-import { Lamp } from '../components/Lamp';
+
 import { txDate } from '../lib/types';
-import type { Role } from '../lib/types';
-
-const corPapel: Record<Role, string> = {
-  admin: 'var(--lamp-vermelha)',
-  analista: 'var(--lamp-andamento)',
-  usuario: 'var(--lamp-aberto)',
-};
-
 export function UsersView() {
   const { data, error, loading } = useUsuarios();
 
@@ -51,10 +43,7 @@ export function UsersView() {
                 <span className="u-mono utable__mono">{u.email}</span>
               </div>
               <div className="utable__cell">
-                <span className="queue__status">
-                  <Lamp cor={corPapel[u.role]} acesa size={8} />
-                  {u.role}
-                </span>
+                <span className="utable__role">{u.role}</span>
               </div>
               <div className="utable__cell">
                 <span className="u-mono utable__mono">{txDate(u.created_at)}</span>

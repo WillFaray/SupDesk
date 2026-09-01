@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-import { corCategoria, corPrioridade, corStatus, Chip, Lamp } from './Lamp';
+import { corPrioridade, corStatus, Lamp } from './Lamp';
 import { Icon } from './Icon';
 import { tempoDecorrido } from '../lib/types';
 import type { Chamado, Status } from '../lib/types';
@@ -55,7 +55,7 @@ export function QueueTable({
             </div>
 
             <div className="queue__cell qcol--cat">
-              <Chip cor={corCategoria[c.category]}>{c.category}</Chip>
+              <span className="queue__cat">{c.category}</span>
             </div>
 
             <div className="queue__cell qcol--status">

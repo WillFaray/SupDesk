@@ -34,9 +34,11 @@
   border-bottom: var(--hair) solid var(--hairline);
   transition: background var(--t-fast) var(--ease-out);
 }
+
 .utable__row:last-child {
   border-bottom: none;
 }
+
 .utable__row:hover {
   background: color-mix(in srgb, var(--ink-strong) 4%, transparent);
 }
@@ -54,6 +56,12 @@
   color: var(--ink-strong);
 }
 
+.utable__role {
+  font-size: 12px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
 .utable__mono {
   font-family: var(--font-mono);
   font-size: 12.5px;
@@ -62,10 +70,12 @@
 }
 
 @media (max-width: 860px) {
+
   .utable__head,
   .utable__row {
     grid-template-columns: minmax(120px, 1fr) 130px 100px;
   }
+
   .utable__head span:nth-child(2),
   .utable__row .utable__cell:nth-child(2) {
     display: none;
