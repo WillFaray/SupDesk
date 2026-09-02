@@ -6,6 +6,8 @@ import authRoutes from './routes/authRoutes.js';
 import 'dotenv/config';
 import { errorHandler } from './middlewares/erroHandler.js';
 import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
+import { setupSwagger } from './swagger.js';
+import { appendFile } from 'node:fs';
 
 // Validar variáveis de ambiente obrigatórias
 if (!process.env.JWT_SECRET) {
@@ -14,6 +16,8 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 const porta = process.env.PORT || 3000;
+
+setupSwagger(app);
 
 app.use(express.json());
 app.use(cors({

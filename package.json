@@ -19,6 +19,8 @@
     "express-rate-limit": "^7.1.5",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.22.0",
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -29,6 +31,8 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.4",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.8",
     "typescript": "^7.0.2"
