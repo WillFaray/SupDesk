@@ -3,9 +3,19 @@ import type {
 } from './types';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api';
+const TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT) || 15_000;
 
 const TOKEN_KEY = 'supdesk_token';
 let token: string | null = localStorage.getItem(TOKEN_KEY);
+
+/* --- Interceptor de sessão: centraliza o logout automático em 401 --- */
+type AoNaoAutorizado = () => void;
+let aoNaoAutorizado: AoNaoAutorizado | null = null;
+
+/** Registra o callback disparado quando a API responde 401 com sessão ativa. */
+export function definirAoNaoAutorizado(cb: AoNaoAutorizado | null) {
+  aoNaoAutorizado = cb;
+}
 
 export function setToken(t: string | null) {
   token = t;
@@ -22,7 +32,29 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (init.body) headers['Content-Type'] = 'application/json';
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  // Timeout central: aborta a requisição que exceder o limite configurado.
+  const controlador = new AbortController();
+  const timer = setTimeout(() => controlador.abort(), TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...init, headers, signal: controlador.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError(`Sem resposta do servidor em ${Math.round(TIMEOUT_MS / 1000)}s`, 408);
+    }
+    throw new ApiError('Falha de conexão com o servidor', 0);
+  } finally {
+    clearTimeout(timer);
+  }
+
+  // 401 com sessão ativa significa token expirado/inválido → logout automático.
+  // (A rota de login retorna 401 para credenciais erradas e não deve expulsar.)
+  if (res.status === 401 && token && !path.startsWith('/auth/login')) {
+    setToken(null);
+    aoNaoAutorizado?.();
+  }
+
   if (!res.ok) {
     let message = `Erro ${res.status}`;
     try {

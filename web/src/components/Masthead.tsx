@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { Icon } from './Icon';
 import { SearchBox } from './SearchBox';
+import { useToast } from './Toast';
 
 type Tema = 'light' | 'dark';
 
@@ -13,6 +14,7 @@ function temaAtual(): Tema {
 export function Masthead() {
   const { user, sair } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [tema, setTema] = useState<Tema>(temaAtual);
 
   function alternarTema() {
@@ -46,7 +48,7 @@ export function Masthead() {
           </button>
           <button
             className="btn btn--fantasma"
-            onClick={() => { sair(); navigate('/login'); }}
+            onClick={() => { sair(); toast.info('Sessão encerrada.'); navigate('/login'); }}
             title="Sair"
             aria-label="Sair"
           >

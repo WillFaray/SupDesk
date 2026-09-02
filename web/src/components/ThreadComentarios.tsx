@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { comentarChamado } from '../lib/data';
 import { Icon } from './Icon';
+import { Spinner } from './Loading';
+import { useToast } from './Toast';
 import { txHora } from '../lib/types';
 import type { Comentario } from '../lib/types';
 
@@ -13,6 +15,7 @@ export function ThreadComentarios({
 }) {
   const [msg, setMsg] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const toast = useToast();
 
   async function enviar() {
     if (!msg.trim()) return;
@@ -21,6 +24,9 @@ export function ThreadComentarios({
       await comentarChamado(id, msg.trim());
       setMsg('');
       await aoEnviar();
+      toast.sucesso('Comentário registrado.');
+    } catch {
+      toast.erro('Não foi possível registrar o comentário.');
     } finally {
       setEnviando(false);
     }
@@ -56,7 +62,7 @@ export function ThreadComentarios({
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
               <button className="btn" disabled={!msg.trim() || enviando} onClick={enviar}>
-                <Icon name="send" size={14} /> {enviando ? 'Enviando…' : 'Registrar'}
+                {enviando ? <Spinner size={14} /> : <Icon name="send" size={14} />} {enviando ? 'Enviando…' : 'Registrar'}
               </button>
             </div>
           </div>

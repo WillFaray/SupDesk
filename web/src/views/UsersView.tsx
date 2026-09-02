@@ -1,6 +1,6 @@
 import { useUsuarios } from '../lib/data';
 import { Icon } from '../components/Icon';
-
+import { Loading } from '../components/Loading';
 import { txDate } from '../lib/types';
 export function UsersView() {
   const { data, error, loading } = useUsuarios();
@@ -23,7 +23,7 @@ export function UsersView() {
       )}
 
       {loading && !data && (
-        <div className="panel-empty"><Icon name="user" size={28} /><p><strong>Carregando…</strong></p></div>
+        <Loading label="Carregando usuários…" />
       )}
 
       {data && (

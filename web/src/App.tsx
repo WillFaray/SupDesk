@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
+import { RouteErrorBoundary } from './components/ErrorBoundary';
 import { LoginView } from './views/LoginView';
 import { QueueView } from './views/QueueView';
 import { BoardView } from './views/BoardView';
@@ -11,13 +12,13 @@ import { UsersView } from './views/UsersView';
 export function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginView />} />
+      <Route path="/login" element={<RouteErrorBoundary><LoginView /></RouteErrorBoundary>} />
       <Route element={<AppShell />}>
-        <Route path="/chamados" element={<QueueView />} />
-        <Route path="/chamados/novo" element={<NewTicketView />} />
-        <Route path="/chamados/:id" element={<TicketDetailView />} />
-        <Route path="/andamento" element={<BoardView />} />
-        <Route path="/usuarios" element={<UsersView />} />
+        <Route path="/chamados" element={<RouteErrorBoundary><QueueView /></RouteErrorBoundary>} />
+        <Route path="/chamados/novo" element={<RouteErrorBoundary><NewTicketView /></RouteErrorBoundary>} />
+        <Route path="/chamados/:id" element={<RouteErrorBoundary><TicketDetailView /></RouteErrorBoundary>} />
+        <Route path="/andamento" element={<RouteErrorBoundary><BoardView /></RouteErrorBoundary>} />
+        <Route path="/usuarios" element={<RouteErrorBoundary><UsersView /></RouteErrorBoundary>} />
       </Route>
       <Route path="*" element={<Navigate to="/chamados" replace />} />
     </Routes>

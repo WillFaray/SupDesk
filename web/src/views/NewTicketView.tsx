@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { criarChamado } from '../lib/data';
 import { corCategoria, corPrioridade, Lamp } from '../components/Lamp';
 import { Icon } from '../components/Icon';
+import { Spinner } from '../components/Loading';
+import { useToast } from '../components/Toast';
 import type { Categoria, Prioridade } from '../lib/types';
 
 const PRIORIDADES: Prioridade[] = ['Baixa', 'Média', 'Alta'];
@@ -10,6 +12,7 @@ const CATEGORIAS: Categoria[] = ['Hardware', 'Software', 'Rede', 'Outros'];
 
 export function NewTicketView() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<Prioridade>('Média');
@@ -31,9 +34,11 @@ export function NewTicketView() {
         priority,
         category,
       });
+      toast.sucesso(`Chamado #${c.id} aberto.`);
       navigate(`/chamados/${c.id}`);
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Falha ao abrir chamado');
+      toast.erro('Não foi possível abrir o chamado.');
     } finally {
       setEnviando(false);
     }
@@ -131,7 +136,7 @@ export function NewTicketView() {
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
             <button className="btn" onClick={() => navigate('/chamados')}>Cancelar</button>
             <button className="btn btn--primario" disabled={enviando} onClick={onSubmit}>
-              <Icon name="send" size={15} /> {enviando ? 'Abrindo…' : 'Abrir chamado'}
+              {enviando ? <Spinner size={15} /> : <Icon name="send" size={15} />} {enviando ? 'Abrindo…' : 'Abrir chamado'}
             </button>
           </div>
         </div>

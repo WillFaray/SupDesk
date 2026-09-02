@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth';
 import { useChamados, listarComentarios } from '../lib/data';
 import { corPrioridade, Lamp } from '../components/Lamp';
 import { Icon } from '../components/Icon';
+import { Loading } from '../components/Loading';
 import type { Comentario, Prioridade } from '../lib/types';
 
 const COLUNAS: Prioridade[] = ['Alta', 'Média', 'Baixa'];
@@ -62,7 +63,7 @@ export function BoardView() {
       )}
 
       {loading && !data && (
-        <div className="panel-empty"><p><strong>Carregando…</strong></p></div>
+        <Loading label="Carregando painel…" />
       )}
 
       {data && meus.length === 0 && !loading && (

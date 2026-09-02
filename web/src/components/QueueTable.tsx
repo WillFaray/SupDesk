@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { corPrioridade, corStatus, Lamp } from './Lamp';
 import { Icon } from './Icon';
+import { Spinner } from './Loading';
 import { tempoDecorrido } from '../lib/types';
 import type { Chamado, Status } from '../lib/types';
 
@@ -74,7 +75,7 @@ export function QueueTable({
                     onClick={() => mover(c, 'Em andamento')}
                     disabled={atualizando === c.id}
                   >
-                    <Icon name="bolt" size={13} /> Assumir
+                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="bolt" size={13} />} Assumir
                   </button>
                 )}
                 {pode && c.status === 'Em andamento' && (
@@ -84,7 +85,7 @@ export function QueueTable({
                     onClick={() => mover(c, 'Resolvido')}
                     disabled={atualizando === c.id}
                   >
-                    <Icon name="check" size={13} /> Resolver
+                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="check" size={13} />} Resolver
                   </button>
                 )}
                 <button

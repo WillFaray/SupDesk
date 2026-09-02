@@ -4,6 +4,8 @@ import { useAuth, podeResolver } from '../lib/auth';
 import { useChamado, atualizarStatus } from '../lib/data';
 import { corCategoria, corPrioridade, corStatus, Chip, Lamp, LampStatus } from '../components/Lamp';
 import { Icon } from '../components/Icon';
+import { Loading, Spinner } from '../components/Loading';
+import { useToast } from '../components/Toast';
 import { tempoDecorrido, txHora } from '../lib/types';
 import { ThreadComentarios } from '../components/ThreadComentarios';
 
@@ -12,6 +14,7 @@ export function TicketDetailView() {
   const navigate = useNavigate();
   const tid = Number(id);
   const { user } = useAuth();
+  const toast = useToast();
   const { data, comentarios, error, loading, recarregar } = useChamado(tid);
   const [mutando, setMutando] = useState(false);
 
@@ -23,18 +26,16 @@ export function TicketDetailView() {
     try {
       await atualizarStatus(data.id, novoStatus);
       await recarregar();
+      toast.sucesso(`Chamado #${data.id} em "${novoStatus}".`);
+    } catch {
+      toast.erro('Não foi possível atualizar o status do chamado.');
     } finally {
       setMutando(false);
     }
   }
 
   if (loading && !data) {
-    return (
-      <div className="panel-empty">
-        <Icon name="gauge" size={28} />
-        <p><strong>Carregando registro…</strong></p>
-      </div>
-    );
+    return <Loading label="Carregando registro…" />;
   }
 
   if (error && !data) {
@@ -104,12 +105,12 @@ export function TicketDetailView() {
         <div className="instrument__body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {pode && data.status === 'Aberto' && (
             <button className="btn btn--primario" disabled={mutando} onClick={() => mudarStatus('Em andamento')}>
-              <Icon name="bolt" size={15} /> Assumir e iniciar
+              {mutando ? <Spinner size={15} /> : <Icon name="bolt" size={15} />} Assumir e iniciar
             </button>
           )}
           {pode && data.status === 'Em andamento' && (
             <button className="btn btn--primario" disabled={mutando} onClick={() => mudarStatus('Resolvido')}>
-              <Icon name="check" size={15} /> Marcar resolvido
+              {mutando ? <Spinner size={15} /> : <Icon name="check" size={15} />} Marcar resolvido
             </button>
           )}
         </div>

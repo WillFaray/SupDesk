@@ -5,6 +5,9 @@ import { api, ApiError, setToken } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { Icon } from '../components/Icon';
 import { Lamp } from '../components/Lamp';
+import { Spinner } from '../components/Loading';
+import { useToast } from '../components/Toast';
+import type { UsuarioLogado } from '../lib/types';
 
 export function LoginView() {
   const [email, setEmail] = useState('');
@@ -13,22 +16,27 @@ export function LoginView() {
   const [carregando, setCarregando] = useState(false);
   const { demo, entrar } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErro(null);
     setCarregando(true);
     try {
+      let usuario: UsuarioLogado;
       if (demo) {
         // Modo demo: fake login sempre aceito, selo DEMO já visível.
         await new Promise((r) => setTimeout(r, 400));
         setToken('demo-token');
-        entrar({ id: 2, username: 'carlos.menezes', email: 'carlos@empresa.com.br', role: 'admin' });
+        usuario = { id: 2, username: 'carlos.menezes', email: 'carlos@empresa.com.br', role: 'admin' };
+        entrar(usuario);
       } else {
         const r = await api.login(email, senha);
         setToken(r.token);
         entrar(r.user);
+        usuario = r.user;
       }
+      toast.sucesso(`Bem-vindo, ${usuario.username}.`);
       navigate('/chamados', { replace: true });
     } catch (err) {
       setErro(err instanceof ApiError ? err.message : 'Falha ao entrar');
@@ -91,7 +99,7 @@ export function LoginView() {
           )}
 
           <button className="btn btn--primario btn--block" type="submit" disabled={carregando}>
-            <Icon name="send" size={15} />
+            {carregando ? <Spinner size={15} /> : <Icon name="send" size={15} />}
             {carregando ? 'Autenticando…' : 'Entrar no painel'}
           </button>
 

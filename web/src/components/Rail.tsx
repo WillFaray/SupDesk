@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { Icon } from './Icon';
+import { useToast } from './Toast';
 import type { Role } from '../lib/types';
 
 const PAPEIS: { valor: Role; label: string }[] = [
@@ -11,6 +12,7 @@ const PAPEIS: { valor: Role; label: string }[] = [
 
 export function Rail() {
   const { user, trocarPapel } = useAuth();
+  const toast = useToast();
   const isAnalista = user && (user.role === 'admin' || user.role === 'analista');
 
   return (
@@ -53,7 +55,7 @@ export function Rail() {
                 type="button"
                 className="rail__role"
                 aria-pressed={user.role === p.valor}
-                onClick={() => trocarPapel(p.valor)}
+                onClick={() => { trocarPapel(p.valor); toast.info(`Papel: ${p.label}`); }}
               >
                 {p.label}
               </button>

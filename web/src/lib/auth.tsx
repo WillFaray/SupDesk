@@ -1,5 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { definirAoNaoAutorizado, setToken } from './api';
+import { useToast } from '../components/Toast';
 import type { Role, UsuarioLogado } from './types';
 
 export const IS_DEMO = (import.meta.env.VITE_DEMO as string) === 'true';
@@ -15,16 +18,66 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+/* --- Persistência de sessão (localStorage) --- */
+
+const USER_KEY = 'supdesk_user';
+
+function usuarioPersistido(): UsuarioLogado | null {
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as UsuarioLogado;
+  } catch {
+    return null;
+  }
+}
+
+function tokenPersistidoExpirado(): boolean {
+  const raw = localStorage.getItem('supdesk_token');
+  if (!raw) return false;
+  // O modo demo usa um token sintético (não-JWT): nada a validar.
+  if (IS_DEMO) return false;
+  try {
+    const base64 = raw.split('.')[1];
+    if (!base64) return true;
+    const payload = JSON.parse(
+      atob(base64.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '')),
+    ) as { exp?: number };
+    return typeof payload.exp === 'number' && Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UsuarioLogado | null>(() => {
-    const raw = localStorage.getItem('supdesk_user');
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as UsuarioLogado;
-    } catch {
+    if (tokenPersistidoExpirado()) {
+      // JWT expirado: a sessão persistida não é mais válida.
+      localStorage.removeItem(USER_KEY);
+      setToken(null);
       return null;
     }
+    return usuarioPersistido();
   });
+
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const expulsar = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem(USER_KEY);
+    setToken(null); // limpa também o token em memória do request layer
+  }, []);
+
+  // Request interceptor: 401 com sessão ativa → logout automático.
+  useEffect(() => {
+    definirAoNaoAutorizado(() => {
+      expulsar();
+      toast.erro('Sessão expirada. Entre novamente para continuar.');
+      navigate('/login', { replace: true });
+    });
+    return () => definirAoNaoAutorizado(null);
+  }, [expulsar, toast, navigate]);
 
   const value = useMemo<AuthCtx>(
     () => ({
@@ -32,23 +85,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       demo: IS_DEMO,
       entrar: (u) => {
         setUser(u);
-        localStorage.setItem('supdesk_user', JSON.stringify(u));
+        localStorage.setItem(USER_KEY, JSON.stringify(u));
       },
-      sair: () => {
-        setUser(null);
-        localStorage.removeItem('supdesk_user');
-        localStorage.removeItem('supdesk_token');
-      },
+      sair: expulsar,
       trocarPapel: (r) => {
         setUser((u) => (u ? { ...u, role: r } : u));
       },
     }),
-    [user],
+    [user, expulsar],
   );
 
   // Persistência (cobre também a troca temporária de papel).
   useEffect(() => {
-    if (user) localStorage.setItem('supdesk_user', JSON.stringify(user));
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
   }, [user]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

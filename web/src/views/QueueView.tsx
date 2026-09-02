@@ -5,6 +5,8 @@ import { useChamados, atualizarStatus } from '../lib/data';
 import { QueueTable } from '../components/QueueTable';
 import { FilterSelect } from '../components/FilterSelect';
 import { Icon } from '../components/Icon';
+import { Loading } from '../components/Loading';
+import { useToast } from '../components/Toast';
 import type { Chamado, Status } from '../lib/types';
 
 type Aba = 'todos' | 'meus' | 'abertos';
@@ -21,6 +23,7 @@ const CATEGORIAS: (Chamado['category'] | 'Todas')[] = ['Todas', 'Hardware', 'Sof
 export function QueueView() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [aba, setAba] = useState<Aba>('todos');
   const [prioridade, setPrioridade] = useState<Chamado['priority'] | 'Todas'>('Todas');
   const [categoria, setCategoria] = useState<Chamado['category'] | 'Todas'>('Todas');
@@ -51,7 +54,10 @@ export function QueueView() {
     try {
       await atualizarStatus(c.id, novo);
       await recarregar();
-    } catch { /* mantém estado anterior */ } finally {
+      toast.sucesso(`Chamado #${c.id} em "${novo}".`);
+    } catch {
+      toast.erro(`Não foi possível atualizar o chamado #${c.id}.`);
+    } finally {
       setAtualizando(null);
     }
   }
@@ -112,9 +118,7 @@ export function QueueView() {
       )}
 
       {loading && !data && (
-        <div className="panel-empty">
-          <p><strong>Carregando…</strong></p>
-        </div>
+        <Loading label="Carregando chamados…" />
       )}
 
       {data && chamados.length === 0 && !loading && (

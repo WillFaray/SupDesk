@@ -209,3 +209,58 @@
     width: 100%;
   }
 }
+
+/* --- Tela de falha (Error Boundary) --- */
+.ebound {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 48px 16px;
+}
+.ebound__card {
+  max-width: 460px;
+  width: 100%;
+  background: var(--ground-1);
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(15, 17, 21, 0.06);
+}
+[data-theme='dark'] .ebound__card {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.ebound__ic {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--lamp-vermelha) 12%, transparent);
+  color: var(--lamp-vermelha);
+  margin-bottom: 14px;
+}
+.ebound__title {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.ebound__msg {
+  font-size: 14px;
+  color: var(--ink-muted);
+  margin-bottom: 14px;
+}
+.ebound__code {
+  display: block;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--ground-0);
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 18px;
+  overflow-wrap: anywhere;
+}
+.ebound__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
