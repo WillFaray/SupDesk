@@ -22,11 +22,15 @@ export function ThreadComentarios({
   aoEnviar: () => Promise<void>;
 }) {
   const [msg, setMsg] = useState('');
-  // const [erro, setErro] = useState<string | null>(null); // Unused state removed
   const [camposErro, setCamposErro] = useState<CampoErro>({});
   const [tocado, setTocado] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [comentarioOtimista, setComentarioOtimista] = useState<Comentario | null>(null);
+  const [erroOtimista, setErroOtimista] = useState<string | null>(null);
   const toast = useToast();
+
+  // Deriva os comentários a exibir: otimista + servidor
+  const comentariosExibidos = comentarioOtimista ? [comentarioOtimista, ...comentarios] : comentarios;
 
   function aoBlur() {
     setTocado(true);
@@ -40,19 +44,33 @@ export function ThreadComentarios({
   }
 
   async function enviar() {
-    // setErro(null); // removed unused state
     setTocado(true);
     const erros = validarComentario(msg);
     setCamposErro(erros);
     if (erros.msg) return;
 
-    setEnviando(true);
+    // 1) Optimistic: cria comentário local imediatamente
+    const agora = new Date().toISOString();
+    const otimista: Comentario = {
+      id: Date.now(), // ID temporário
+      message: msg.trim(),
+      created_at: agora,
+      autor_do_comentario: 'você',
+      perfil_do_autor: 'usuario',
+    };
+    setComentarioOtimista(otimista);
+    setErroOtimista(null);
+    setMsg(''); // limpa o input imediatamente
+
+    // 2) API em background
     try {
-      await comentarChamado(id, msg.trim());
-      setMsg('');
-      await aoEnviar();
+      await comentarChamado(id, otimista.message);
       toast.sucesso('Comentário registrado.');
+      await aoEnviar(); // recarrega do servidor
     } catch {
+      // 3) Rollback: remove o otimista e mostra erro
+      setComentarioOtimista(null);
+      setErroOtimista('Não foi possível registrar o comentário. Tente novamente.');
       toast.erro('Não foi possível registrar o comentário.');
     } finally {
       setEnviando(false);
@@ -68,7 +86,7 @@ export function ThreadComentarios({
       </div>
       <div className="instrument__body">
         <div className="thread">
-          {comentarios.map((cm) => (
+          {comentariosExibidos.map((cm) => (
             <article className="thread__item" key={cm.id}>
               <div className="thread__head">
                 <span className="thread__name">{cm.autor_do_comentario}</span>
@@ -78,6 +96,12 @@ export function ThreadComentarios({
               <p className="thread__body">{cm.message}</p>
             </article>
           ))}
+
+          {erroOtimista && (
+            <p className="field__error field__error--form" role="alert" style={{ marginBottom: 16 }}>
+              <Icon name="alert" size={14} /> {erroOtimista}
+            </p>
+          )}
 
           <div>
             <textarea
