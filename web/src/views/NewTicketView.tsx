@@ -10,6 +10,15 @@ import type { Categoria, Prioridade } from '../lib/types';
 const PRIORIDADES: Prioridade[] = ['Baixa', 'Média', 'Alta'];
 const CATEGORIAS: Categoria[] = ['Hardware', 'Software', 'Rede', 'Outros'];
 
+type CampoErro = { titulo?: string; descricao?: string };
+
+function validarFormulario(titulo: string, descricao: string): CampoErro {
+  const e: CampoErro = {};
+  if (!titulo.trim()) e.titulo = 'Título é obrigatório.';
+  if (descricao.trim().length < 10) e.descricao = 'Descrição deve ter ao menos 10 caracteres.';
+  return e;
+}
+
 export function NewTicketView() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -18,14 +27,38 @@ export function NewTicketView() {
   const [priority, setPriority] = useState<Prioridade>('Média');
   const [category, setCategory] = useState<Categoria>('Outros');
   const [erro, setErro] = useState<string | null>(null);
+  const [camposErro, setCamposErro] = useState<CampoErro>({});
+  const [tocados, setTocados] = useState<Record<string, boolean>>({});
   const [enviando, setEnviando] = useState(false);
 
-  async function onSubmit() {
-    if (!title.trim() || description.trim().length < 10) {
-      setErro('Dê um título e descreva o problema com ao menos 10 caracteres.');
-      return;
-    }
+  function tocar(campo: string) {
+    setTocados((p) => ({ ...p, [campo]: true }));
+  }
+
+  function aoBlur(campo: string) {
+    tocar(campo);
+    setCamposErro(validarFormulario(title, description));
+  }
+
+  function aoDigitarTitulo(val: string) {
+    setTitle(val);
     setErro(null);
+    if (tocados.titulo) setCamposErro(validarFormulario(val, description));
+  }
+
+  function aoDigitarDescricao(val: string) {
+    setDescription(val);
+    setErro(null);
+    if (tocados.descricao) setCamposErro(validarFormulario(title, val));
+  }
+
+  async function onSubmit() {
+    setErro(null);
+    setTocados({ titulo: true, descricao: true });
+    const erros = validarFormulario(title, description);
+    setCamposErro(erros);
+    if (erros.titulo || erros.descricao) return;
+
     setEnviando(true);
     try {
       const c = await criarChamado({
@@ -66,25 +99,41 @@ export function NewTicketView() {
             <label className="field__label" htmlFor="n_titulo">Título <span>*</span></label>
             <input
               id="n_titulo"
-              className="field__input"
+              className={'field__input' + (tocados.titulo && camposErro.titulo ? ' field__input--erro' : '')}
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => aoDigitarTitulo(e.target.value)}
+              onBlur={() => aoBlur('titulo')}
               maxLength={100}
               placeholder="Resumo do problema em uma linha"
+              aria-invalid={!!(tocados.titulo && camposErro.titulo)}
+              aria-describedby={tocados.titulo && camposErro.titulo ? 'titulo-erro' : undefined}
             />
+            {tocados.titulo && camposErro.titulo && (
+              <p className="field__error field__error--inline" id="titulo-erro" role="alert">
+                <Icon name="alert" size={13} /> {camposErro.titulo}
+              </p>
+            )}
           </div>
 
           <div className="field">
             <label className="field__label" htmlFor="n_desc">Descrição <span>*</span></label>
             <textarea
               id="n_desc"
-              className="field__textarea"
+              className={'field__textarea' + (tocados.descricao && camposErro.descricao ? ' field__textarea--erro' : '')}
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => aoDigitarDescricao(e.target.value)}
+              onBlur={() => aoBlur('descricao')}
               maxLength={1000}
               placeholder="O que aconteceu, quando começou, o que você já tentou…"
+              aria-invalid={!!(tocados.descricao && camposErro.descricao)}
+              aria-describedby={tocados.descricao && camposErro.descricao ? 'descricao-erro' : undefined}
             />
             <span className="field__hint u-mono">{description.length}/1000</span>
+            {tocados.descricao && camposErro.descricao && (
+              <p className="field__error field__error--inline" id="descricao-erro" role="alert">
+                <Icon name="alert" size={13} /> {camposErro.descricao}
+              </p>
+            )}
           </div>
 
           <div className="field">
@@ -128,7 +177,7 @@ export function NewTicketView() {
           </div>
 
           {erro && (
-            <p className="field__error" role="alert">
+            <p className="field__error field__error--form" role="alert">
               <Icon name="alert" size={14} /> {erro}
             </p>
           )}
