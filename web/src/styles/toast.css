@@ -69,7 +69,9 @@
   height: 22px;
   border-radius: var(--radius-sm);
   color: var(--ink-faint);
-  transition: color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out);
+  transition:
+    color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
 }
 .toast__close:hover {
   color: var(--ink-strong);

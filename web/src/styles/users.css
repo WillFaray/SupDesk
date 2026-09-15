@@ -70,7 +70,6 @@
 }
 
 @media (max-width: 860px) {
-
   .utable__head,
   .utable__row {
     grid-template-columns: minmax(120px, 1fr) 130px 100px;

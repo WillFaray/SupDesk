@@ -10,7 +10,7 @@ export const loginLimiter = rateLimit({
     keyGenerator: (req, res) => {
         // Usa o email como chave para limitar por usuário
         return req.body?.email || req.ip;
-    }
+    },
 });
 
 // Rate limiter para registro de usuários
@@ -19,7 +19,7 @@ export const registerLimiter = rateLimit({
     max: 3, // Máximo de 3 registros por IP
     message: 'Muitos registros criados. Tente novamente em 1 hora.',
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
 });
 
 // Rate limiter geral para API - menos restritivo
@@ -28,5 +28,5 @@ export const apiLimiter = rateLimit({
     max: 100, // 100 requisições por IP
     message: 'Muitas requisições. Tente novamente mais tarde.',
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
 });

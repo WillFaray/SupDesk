@@ -106,7 +106,10 @@
   border: var(--hair) solid var(--hairline);
   background: var(--ground-0);
   color: var(--ink);
-  transition: border-color var(--t-fast) var(--ease-out), background var(--t-fast) var(--ease-out), color var(--t-fast) var(--ease-out);
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out),
+    color var(--t-fast) var(--ease-out);
 }
 .pick .lamp {
   width: 8px;

@@ -7,7 +7,10 @@ import { tempoDecorrido } from '../lib/types';
 import type { Chamado, Status } from '../lib/types';
 
 export function QueueTable({
-  chamados, atualizando, pode, mover,
+  chamados,
+  atualizando,
+  pode,
+  mover,
 }: {
   chamados: Chamado[];
   atualizando: number | null;
@@ -28,14 +31,14 @@ export function QueueTable({
       </div>
 
       {chamados.map((c) => {
-        const atrasado = c.status !== 'Resolvido'
-          && Date.now() - new Date(c.created_at).getTime() > 24 * 3600_000;
+        const atrasado =
+          c.status !== 'Resolvido' && Date.now() - new Date(c.created_at).getTime() > 24 * 3600_000;
         return (
           <div key={c.id} className={`queue__row${atualizando === c.id ? ' is-updating' : ''}`}>
             <div className="queue__cell">
               <span className="queue__num">
-                <Lamp cor={corPrioridade[c.priority]} acesa={c.priority === 'Alta'} size={8} />
-                #{c.id}
+                <Lamp cor={corPrioridade[c.priority]} acesa={c.priority === 'Alta'} size={8} />#
+                {c.id}
               </span>
             </div>
 
@@ -75,7 +78,8 @@ export function QueueTable({
                     onClick={() => mover(c, 'Em andamento')}
                     disabled={atualizando === c.id}
                   >
-                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="bolt" size={13} />} Assumir
+                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="bolt" size={13} />}{' '}
+                    Assumir
                   </button>
                 )}
                 {pode && c.status === 'Em andamento' && (
@@ -85,7 +89,8 @@ export function QueueTable({
                     onClick={() => mover(c, 'Resolvido')}
                     disabled={atualizando === c.id}
                   >
-                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="check" size={13} />} Resolver
+                    {atualizando === c.id ? <Spinner size={13} /> : <Icon name="check" size={13} />}{' '}
+                    Resolver
                   </button>
                 )}
                 <button

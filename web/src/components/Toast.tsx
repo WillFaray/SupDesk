@@ -49,12 +49,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const push = useCallback((tipo: TipoToast, mensagem: string) => {
-    const id = proximoId++;
-    // Mantém no máximo 5 visíveis, descartando as mais antigas.
-    setToasts((atuais) => [...atuais.slice(-4), { id, tipo, mensagem }]);
-    timers.current.set(id, setTimeout(() => remover(id), DURACAO[tipo]));
-  }, [remover]);
+  const push = useCallback(
+    (tipo: TipoToast, mensagem: string) => {
+      const id = proximoId++;
+      // Mantém no máximo 5 visíveis, descartando as mais antigas.
+      setToasts((atuais) => [...atuais.slice(-4), { id, tipo, mensagem }]);
+      timers.current.set(
+        id,
+        setTimeout(() => remover(id), DURACAO[tipo]),
+      );
+    },
+    [remover],
+  );
 
   const value = useMemo<ToastCtx>(
     () => ({

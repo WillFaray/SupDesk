@@ -22,9 +22,7 @@ export function UsersView() {
         </p>
       )}
 
-      {loading && !data && (
-        <Loading label="Carregando usuários…" />
-      )}
+      {loading && !data && <Loading label="Carregando usuários…" />}
 
       {data && (
         <div className="utable">

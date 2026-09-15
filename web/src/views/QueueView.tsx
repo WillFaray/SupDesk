@@ -18,7 +18,13 @@ const ABAS: { valor: Aba; label: string }[] = [
 ];
 
 const PRIORIDADES: (Chamado['priority'] | 'Todas')[] = ['Todas', 'Baixa', 'Média', 'Alta'];
-const CATEGORIAS: (Chamado['category'] | 'Todas')[] = ['Todas', 'Hardware', 'Software', 'Rede', 'Outros'];
+const CATEGORIAS: (Chamado['category'] | 'Todas')[] = [
+  'Todas',
+  'Hardware',
+  'Software',
+  'Rede',
+  'Outros',
+];
 
 export function QueueView() {
   const { user } = useAuth();
@@ -29,12 +35,15 @@ export function QueueView() {
   const [categoria, setCategoria] = useState<Chamado['category'] | 'Todas'>('Todas');
   const [atualizando, setAtualizando] = useState<number | null>(null);
 
-  const filtros = useMemo(() => ({
-    status: aba === 'abertos' ? ('Aberto' as Status) : undefined,
-    priority: prioridade === 'Todas' ? undefined : prioridade,
-    category: categoria === 'Todas' ? undefined : categoria,
-    limit: 50,
-  }), [aba, prioridade, categoria]);
+  const filtros = useMemo(
+    () => ({
+      status: aba === 'abertos' ? ('Aberto' as Status) : undefined,
+      priority: prioridade === 'Todas' ? undefined : prioridade,
+      category: categoria === 'Todas' ? undefined : categoria,
+      limit: 50,
+    }),
+    [aba, prioridade, categoria],
+  );
 
   const { data, error, loading, recarregar } = useChamados(filtros);
 
@@ -117,16 +126,19 @@ export function QueueView() {
         </p>
       )}
 
-      {loading && !data && (
-        <Loading label="Carregando chamados…" />
-      )}
+      {loading && !data && <Loading label="Carregando chamados…" />}
 
       {data && chamados.length === 0 && !loading && (
         <div className="panel-empty">
-          <p><strong>Nenhum chamado</strong></p>
+          <p>
+            <strong>Nenhum chamado</strong>
+          </p>
           <p>Nada com este filtro.</p>
           <p style={{ marginTop: 14 }}>
-            <button className="btn btn--primario btn--sm" onClick={() => navigate('/chamados/novo')}>
+            <button
+              className="btn btn--primario btn--sm"
+              onClick={() => navigate('/chamados/novo')}
+            >
               <Icon name="plus" size={14} /> Abrir chamado
             </button>
           </p>

@@ -1,8 +1,20 @@
 import express from 'express';
-import { CreateTicket, listTickets, getTicket, updateTicket, deleteTicket, adicionarComentario, listarComentarios } from '../controllers/TicketController.js';
+import {
+    CreateTicket,
+    listTickets,
+    getTicket,
+    updateTicket,
+    deleteTicket,
+    adicionarComentario,
+    listarComentarios,
+} from '../controllers/TicketController.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validateMiddleware.js';
-import { createTicketSchema, updateTicketStatusSchema, createCommentSchema } from '../schemas/ticketSchema.js';
+import {
+    createTicketSchema,
+    updateTicketStatusSchema,
+    createCommentSchema,
+} from '../schemas/ticketSchema.js';
 
 const router = express.Router();
 

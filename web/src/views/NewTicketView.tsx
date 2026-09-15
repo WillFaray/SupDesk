@@ -79,7 +79,11 @@ export function NewTicketView() {
 
   return (
     <div className="detail" style={{ maxWidth: 640 }}>
-      <button className="btn btn--fantasma btn--sm" onClick={() => navigate('/chamados')} style={{ marginBottom: 16 }}>
+      <button
+        className="btn btn--fantasma btn--sm"
+        onClick={() => navigate('/chamados')}
+        style={{ marginBottom: 16 }}
+      >
         <Icon name="arrowLeft" size={14} /> Voltar à fila
       </button>
 
@@ -92,14 +96,20 @@ export function NewTicketView() {
 
       <section className="instrument" aria-label="Formulário de novo chamado">
         <div className="instrument__head">
-          <span className="instrument__title"><Icon name="plus" size={13} /> Ocorrência</span>
+          <span className="instrument__title">
+            <Icon name="plus" size={13} /> Ocorrência
+          </span>
         </div>
         <div className="instrument__body">
           <div className="field">
-            <label className="field__label" htmlFor="n_titulo">Título <span>*</span></label>
+            <label className="field__label" htmlFor="n_titulo">
+              Título <span>*</span>
+            </label>
             <input
               id="n_titulo"
-              className={'field__input' + (tocados.titulo && camposErro.titulo ? ' field__input--erro' : '')}
+              className={
+                'field__input' + (tocados.titulo && camposErro.titulo ? ' field__input--erro' : '')
+              }
               value={title}
               onChange={(e) => aoDigitarTitulo(e.target.value)}
               onBlur={() => aoBlur('titulo')}
@@ -116,17 +126,24 @@ export function NewTicketView() {
           </div>
 
           <div className="field">
-            <label className="field__label" htmlFor="n_desc">Descrição <span>*</span></label>
+            <label className="field__label" htmlFor="n_desc">
+              Descrição <span>*</span>
+            </label>
             <textarea
               id="n_desc"
-              className={'field__textarea' + (tocados.descricao && camposErro.descricao ? ' field__textarea--erro' : '')}
+              className={
+                'field__textarea' +
+                (tocados.descricao && camposErro.descricao ? ' field__textarea--erro' : '')
+              }
               value={description}
               onChange={(e) => aoDigitarDescricao(e.target.value)}
               onBlur={() => aoBlur('descricao')}
               maxLength={1000}
               placeholder="O que aconteceu, quando começou, o que você já tentou…"
               aria-invalid={!!(tocados.descricao && camposErro.descricao)}
-              aria-describedby={tocados.descricao && camposErro.descricao ? 'descricao-erro' : undefined}
+              aria-describedby={
+                tocados.descricao && camposErro.descricao ? 'descricao-erro' : undefined
+              }
             />
             <span className="field__hint u-mono">{description.length}/1000</span>
             {tocados.descricao && camposErro.descricao && (
@@ -137,7 +154,9 @@ export function NewTicketView() {
           </div>
 
           <div className="field">
-            <span className="field__label" id="n_prio_lbl">Prioridade</span>
+            <span className="field__label" id="n_prio_lbl">
+              Prioridade
+            </span>
             <div className="pickrow" role="radiogroup" aria-labelledby="n_prio_lbl">
               {PRIORIDADES.map((p) => (
                 <button
@@ -157,7 +176,9 @@ export function NewTicketView() {
           </div>
 
           <div className="field">
-            <span className="field__label" id="n_cat_lbl">Categoria</span>
+            <span className="field__label" id="n_cat_lbl">
+              Categoria
+            </span>
             <div className="pickrow" role="radiogroup" aria-labelledby="n_cat_lbl">
               {CATEGORIAS.map((c) => (
                 <button
@@ -183,9 +204,12 @@ export function NewTicketView() {
           )}
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
-            <button className="btn" onClick={() => navigate('/chamados')}>Cancelar</button>
+            <button className="btn" onClick={() => navigate('/chamados')}>
+              Cancelar
+            </button>
             <button className="btn btn--primario" disabled={enviando} onClick={onSubmit}>
-              {enviando ? <Spinner size={15} /> : <Icon name="send" size={15} />} {enviando ? 'Abrindo…' : 'Abrir chamado'}
+              {enviando ? <Spinner size={15} /> : <Icon name="send" size={15} />}{' '}
+              {enviando ? 'Abrindo…' : 'Abrir chamado'}
             </button>
           </div>
         </div>

@@ -15,7 +15,9 @@ function validarComentario(msg: string): CampoErro {
 }
 
 export function ThreadComentarios({
-  id, comentarios, aoEnviar,
+  id,
+  comentarios,
+  aoEnviar,
 }: {
   id: number;
   comentarios: Comentario[];
@@ -30,7 +32,9 @@ export function ThreadComentarios({
   const toast = useToast();
 
   // Deriva os comentários a exibir: otimista + servidor
-  const comentariosExibidos = comentarioOtimista ? [comentarioOtimista, ...comentarios] : comentarios;
+  const comentariosExibidos = comentarioOtimista
+    ? [comentarioOtimista, ...comentarios]
+    : comentarios;
 
   function aoBlur() {
     setTocado(true);
@@ -98,14 +102,20 @@ export function ThreadComentarios({
           ))}
 
           {erroOtimista && (
-            <p className="field__error field__error--form" role="alert" style={{ marginBottom: 16 }}>
+            <p
+              className="field__error field__error--form"
+              role="alert"
+              style={{ marginBottom: 16 }}
+            >
               <Icon name="alert" size={14} /> {erroOtimista}
             </p>
           )}
 
           <div>
             <textarea
-              className={'field__textarea' + (tocado && camposErro.msg ? ' field__textarea--erro' : '')}
+              className={
+                'field__textarea' + (tocado && camposErro.msg ? ' field__textarea--erro' : '')
+              }
               value={msg}
               onChange={(e) => aoDigitar(e.target.value)}
               onBlur={() => aoBlur()}
@@ -120,8 +130,13 @@ export function ThreadComentarios({
               </p>
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-              <button className="btn" disabled={!(msg.trim() && !camposErro.msg) || enviando} onClick={enviar}>
-                {enviando ? <Spinner size={14} /> : <Icon name="send" size={14} />} {enviando ? 'Enviando…' : 'Registrar'}
+              <button
+                className="btn"
+                disabled={!(msg.trim() && !camposErro.msg) || enviando}
+                onClick={enviar}
+              >
+                {enviando ? <Spinner size={14} /> : <Icon name="send" size={14} />}{' '}
+                {enviando ? 'Enviando…' : 'Registrar'}
               </button>
             </div>
           </div>

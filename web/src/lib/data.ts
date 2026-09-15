@@ -54,7 +54,9 @@ export function useChamados(filtros: FiltrosChamados = {}) {
     }
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { void carregar(); }, [carregar]);
+  useEffect(() => {
+    void carregar();
+  }, [carregar]);
 
   return { data, error, loading, recarregar: carregar };
 }
@@ -87,7 +89,9 @@ export function useChamado(id: number) {
     }
   }, [id]);
 
-  useEffect(() => { void carregar(); }, [carregar]);
+  useEffect(() => {
+    void carregar();
+  }, [carregar]);
 
   return { data, comentarios, error, loading, recarregar: carregar };
 }
@@ -114,7 +118,9 @@ export function useUsuarios() {
     }
   }, []);
 
-  useEffect(() => { void carregar(); }, [carregar]);
+  useEffect(() => {
+    void carregar();
+  }, [carregar]);
 
   return { data, error, loading, recarregar: carregar };
 }
@@ -139,7 +145,12 @@ export async function atualizarStatus(id: number, status: Chamado['status']): Pr
   return { ...c };
 }
 
-export async function criarChamado(dados: { title: string; description: string; priority: string; category: string }): Promise<Chamado> {
+export async function criarChamado(dados: {
+  title: string;
+  description: string;
+  priority: string;
+  category: string;
+}): Promise<Chamado> {
   if (!IS_DEMO) return api.criarChamado(dados);
   await delay(340);
   const c: Chamado = {
@@ -183,7 +194,10 @@ export async function excluirChamado(id: number): Promise<void> {
 export function useContagemStatus() {
   const { data } = useChamados({ limit: 100 });
   return useMemo(() => {
-    const contagem = { Aberto: 0, 'Em andamento': 0, Resolvido: 0 } as Record<Chamado['status'], number>;
+    const contagem = { Aberto: 0, 'Em andamento': 0, Resolvido: 0 } as Record<
+      Chamado['status'],
+      number
+    >;
     for (const c of data?.tickets ?? []) contagem[c.status] += 1;
     return contagem;
   }, [data]);

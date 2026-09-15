@@ -48,7 +48,11 @@ export function Masthead() {
           </button>
           <button
             className="btn btn--fantasma"
-            onClick={() => { sair(); toast.info('Sessão encerrada.'); navigate('/login'); }}
+            onClick={() => {
+              sair();
+              toast.info('Sessão encerrada.');
+              navigate('/login');
+            }}
             title="Sair"
             aria-label="Sair"
           >

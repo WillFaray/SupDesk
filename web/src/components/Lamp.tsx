@@ -3,7 +3,15 @@ import type { Prioridade, Status } from '../lib/types';
 import type { Categoria } from '../lib/types';
 
 /* --- Lâmpada pura --- */
-export function Lamp({ cor, acesa = true, size = 10 }: { cor: string; acesa?: boolean; size?: number }) {
+export function Lamp({
+  cor,
+  acesa = true,
+  size = 10,
+}: {
+  cor: string;
+  acesa?: boolean;
+  size?: number;
+}) {
   return (
     <span
       className={`lamp${acesa ? ' lamp--acesa' : ''}`}

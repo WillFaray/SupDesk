@@ -2,11 +2,16 @@ import express from 'express';
 import pool from '../database.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
 
-export const CreateTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const CreateTicket = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const user_id = req.user.id;
         const { title, description, priority, category } = req.body;
-        const query = 'INSERT INTO tickets (user_id, title, description, priority, category) VALUES ($1, $2, $3, $4, $5) RETURNING *';
+        const query =
+            'INSERT INTO tickets (user_id, title, description, priority, category) VALUES ($1, $2, $3, $4, $5) RETURNING *';
         const values = [user_id, title, description, priority || 'Média', category || 'Outros'];
         const result = await pool.query(query, values);
         return res.status(201).json(result.rows[0]);
@@ -15,14 +20,19 @@ export const CreateTicket = async (req: AuthRequest, res: express.Response, next
     }
 };
 
-export const listTickets = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const listTickets = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id, role } = req.user;
 
         const { status, priority, category, page = '1', limit = '10' } = req.query;
         const offset = (parseInt(page as string, 10) - 1) * parseInt(limit as string, 10);
 
-        let query = 'SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel FROM tickets JOIN users AS autor ON tickets.user_id = autor.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id WHERE 1=1';
+        let query =
+            'SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel FROM tickets JOIN users AS autor ON tickets.user_id = autor.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id WHERE 1=1';
 
         let values: any[] = [];
         let valueIndex = 1;
@@ -52,14 +62,18 @@ export const listTickets = async (req: AuthRequest, res: express.Response, next:
             paginaAtual: parseInt(page as string, 10),
             limite: parseInt(limit as string, 10),
             total: result.rows.length,
-            tickets: result.rows
-        })
+            tickets: result.rows,
+        });
     } catch (error) {
         next(error);
     }
 };
 
-export const updateTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const updateTicket = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
@@ -70,7 +84,8 @@ export const updateTicket = async (req: AuthRequest, res: express.Response, next
             return res.status(403).json({ error: 'Acesso negado' });
         }
 
-        const query = 'UPDATE tickets SET status = $1, responsavel_id = $2, updated_at = NOW() WHERE id = $3 RETURNING *';
+        const query =
+            'UPDATE tickets SET status = $1, responsavel_id = $2, updated_at = NOW() WHERE id = $3 RETURNING *';
         const values = [status, userId, id];
         const result = await pool.query(query, values);
 
@@ -82,9 +97,13 @@ export const updateTicket = async (req: AuthRequest, res: express.Response, next
     } catch (error) {
         next(error);
     }
-}
+};
 
-export const deleteTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const deleteTicket = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id } = req.params;
         const userRole = req.user.role;
@@ -106,7 +125,11 @@ export const deleteTicket = async (req: AuthRequest, res: express.Response, next
     }
 };
 
-export const adicionarComentario = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const adicionarComentario = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id: ticketId } = req.params;
 
@@ -118,19 +141,24 @@ export const adicionarComentario = async (req: AuthRequest, res: express.Respons
             return res.status(404).json({ error: 'Chamado não encontrado' });
         }
 
-        const query = 'INSERT INTO ticket_comments (ticket_id, user_id, message) VALUES ($1, $2, $3) RETURNING *';
+        const query =
+            'INSERT INTO ticket_comments (ticket_id, user_id, message) VALUES ($1, $2, $3) RETURNING *';
         const result = await pool.query(query, [ticketId, UserId, message]);
         return res.status(201).json({
             status: 'success',
             message: 'Comentário adicionado com sucesso',
-            comment: result.rows[0]
+            comment: result.rows[0],
         });
     } catch (error) {
         next(error);
     }
-}
+};
 
-export const listarComentarios = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const listarComentarios = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id: ticketId } = req.params;
         const query = `
@@ -151,9 +179,13 @@ export const listarComentarios = async (req: AuthRequest, res: express.Response,
     } catch (error) {
         next(error);
     }
-}
+};
 
-export const getTicket = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const getTicket = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const { id } = req.params;
         const { role, id: userId } = req.user;

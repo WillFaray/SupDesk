@@ -8,7 +8,8 @@ export const CreateUser = async (req: express.Request, res: express.Response) =>
         const { username, email, password_hash, role } = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password_hash, saltRounds);
-        const query = 'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *';
+        const query =
+            'INSERT INTO users (username, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING *';
         const values = [username, email, hashedPassword, role];
         const result = await pool.query(query, values);
         res.status(201).json(result.rows[0]);
@@ -28,7 +29,11 @@ export const listUsers = async (req: express.Request, res: express.Response) => 
     }
 };
 
-export const updateUser = async (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const updateUser = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     try {
         const userId = req.user.id;
         const { username, email, password_hash } = req.body;
@@ -71,7 +76,7 @@ export const updateUser = async (req: AuthRequest, res: express.Response, next: 
 
         return res.status(200).json({
             message: 'Usuário atualizado com sucesso',
-            user: result.rows[0]
+            user: result.rows[0],
         });
     } catch (error) {
         next(error);

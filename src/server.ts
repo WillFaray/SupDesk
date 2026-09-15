@@ -20,10 +20,12 @@ const porta = process.env.PORT || 3000;
 setupSwagger(app);
 
 app.use(express.json());
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+        credentials: true,
+    }),
+);
 app.use(apiLimiter);
 app.use('/usuarios', userRoutes);
 app.use('/chamados', ticketRoutes);

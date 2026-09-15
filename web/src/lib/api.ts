@@ -1,5 +1,11 @@
 import type {
-  Chamado, Comentario, FiltrosChamados, ListaChamados, LoginResponse, Usuario, UsuarioLogado,
+  Chamado,
+  Comentario,
+  FiltrosChamados,
+  ListaChamados,
+  LoginResponse,
+  Usuario,
+  UsuarioLogado,
 } from './types';
 
 const API_BASE = (import.meta.env.VITE_API_URL as string) || '/api';
@@ -59,10 +65,13 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     let message = `Erro ${res.status}`;
     try {
       const body = await res.json();
-      message = (body as { error?: string; message?: string }).error
-        || (body as { message?: string }).message
-        || message;
-    } catch { /* corpo não-JSON */ }
+      message =
+        (body as { error?: string; message?: string }).error ||
+        (body as { message?: string }).message ||
+        message;
+    } catch {
+      /* corpo não-JSON */
+    }
     throw new ApiError(message, res.status);
   }
   if (res.status === 204) return undefined as T;
@@ -100,8 +109,12 @@ export const api = {
 
   obterChamado: (id: number) => req<Chamado>(`/chamados/${id}`),
 
-  criarChamado: (dados: { title: string; description: string; priority: string; category: string }) =>
-    req<Chamado>('/chamados', { method: 'POST', body: JSON.stringify(dados) }),
+  criarChamado: (dados: {
+    title: string;
+    description: string;
+    priority: string;
+    category: string;
+  }) => req<Chamado>('/chamados', { method: 'POST', body: JSON.stringify(dados) }),
 
   atualizarStatus: (id: number, status: string) =>
     req<Chamado>(`/chamados/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
@@ -117,6 +130,8 @@ export const api = {
   listarComentarios: (id: number) => req<Comentario[]>(`/chamados/${id}/comentarios`),
 };
 
-export function usuarioDeLogin(u: UsuarioLogado) { return u; }
+export function usuarioDeLogin(u: UsuarioLogado) {
+  return u;
+}
 
 export { API_BASE };

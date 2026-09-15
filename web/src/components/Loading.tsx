@@ -17,7 +17,9 @@ export function Loading({ label = 'Carregando…' }: { label?: string }) {
   return (
     <div className="panel-empty loading" role="status">
       <Spinner size={26} label={label} />
-      <p><strong>{label}</strong></p>
+      <p>
+        <strong>{label}</strong>
+      </p>
     </div>
   );
 }

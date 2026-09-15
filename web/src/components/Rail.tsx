@@ -55,7 +55,10 @@ export function Rail() {
                 type="button"
                 className="rail__role"
                 aria-pressed={user.role === p.valor}
-                onClick={() => { trocarPapel(p.valor); toast.info(`Papel: ${p.label}`); }}
+                onClick={() => {
+                  trocarPapel(p.valor);
+                  toast.info(`Papel: ${p.label}`);
+                }}
               >
                 {p.label}
               </button>

@@ -5,7 +5,11 @@ export interface AuthRequest extends express.Request {
     user?: any;
 }
 
-export const verifyToken = (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const verifyToken = (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+) => {
     const authHeader = req.headers['authorization'];
 
     if (!authHeader) {
@@ -27,4 +31,4 @@ export const verifyToken = (req: AuthRequest, res: express.Response, next: expre
     } catch (error) {
         return res.status(401).json({ error: 'Token inválido.' });
     }
-}
+};

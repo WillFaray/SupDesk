@@ -60,7 +60,12 @@ export function LoginView() {
         // Modo demo: fake login sempre aceito, selo DEMO já visível.
         await new Promise((r) => setTimeout(r, 400));
         setToken('demo-token');
-        usuario = { id: 2, username: 'carlos.menezes', email: 'carlos@empresa.com.br', role: 'admin' };
+        usuario = {
+          id: 2,
+          username: 'carlos.menezes',
+          email: 'carlos@empresa.com.br',
+          role: 'admin',
+        };
         entrar(usuario);
       } else {
         const r = await api.login(email, senha);
@@ -82,12 +87,16 @@ export function LoginView() {
       <section className="login__face" aria-label="Painel de controle">
         <div className="login__mark">SupDesk</div>
         <p className="login__tagline">
-          Painel de controle do seu suporte. Chamados, responsáveis e status
-          numa única bancada de operação.
+          Painel de controle do seu suporte. Chamados, responsáveis e status numa única bancada de
+          operação.
         </p>
         <div className="login__readout">
-          <div><Lamp cor="var(--lamp-resolvido)" acesa /> 24h de registro</div>
-          <div><Lamp cor="var(--lamp-andamento)" acesa /> fila ao vivo</div>
+          <div>
+            <Lamp cor="var(--lamp-resolvido)" acesa /> 24h de registro
+          </div>
+          <div>
+            <Lamp cor="var(--lamp-andamento)" acesa /> fila ao vivo
+          </div>
         </div>
       </section>
 
@@ -97,10 +106,14 @@ export function LoginView() {
           <p className="login__card-sub u-mono">Credenciamento de operador</p>
 
           <div className="field">
-            <label className="field__label" htmlFor="email">E-mail <span>*</span></label>
+            <label className="field__label" htmlFor="email">
+              E-mail <span>*</span>
+            </label>
             <input
               id="email"
-              className={'field__input' + (tocados.email && camposErro.email ? ' field__input--erro' : '')}
+              className={
+                'field__input' + (tocados.email && camposErro.email ? ' field__input--erro' : '')
+              }
               type="email"
               autoComplete="email"
               value={email}
@@ -119,10 +132,14 @@ export function LoginView() {
           </div>
 
           <div className="field">
-            <label className="field__label" htmlFor="senha">Senha <span>*</span></label>
+            <label className="field__label" htmlFor="senha">
+              Senha <span>*</span>
+            </label>
             <input
               id="senha"
-              className={'field__input' + (tocados.senha && camposErro.senha ? ' field__input--erro' : '')}
+              className={
+                'field__input' + (tocados.senha && camposErro.senha ? ' field__input--erro' : '')
+              }
               type="password"
               autoComplete="current-password"
               value={senha}
@@ -153,9 +170,8 @@ export function LoginView() {
 
           {demo && (
             <p className="login__demo-hint">
-              <strong>Modo demonstração.</strong> O backend não está ativo; esta
-              sessão usa dados sintéticos rotulados como <em>Demo</em>. Qualquer
-              e-mail/senha entra no painel.
+              <strong>Modo demonstração.</strong> O backend não está ativo; esta sessão usa dados
+              sintéticos rotulados como <em>Demo</em>. Qualquer e-mail/senha entra no painel.
             </p>
           )}
         </form>

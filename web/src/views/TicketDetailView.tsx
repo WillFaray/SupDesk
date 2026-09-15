@@ -96,8 +96,14 @@ export function TicketDetailView() {
     return (
       <div className="panel-empty">
         <Icon name="alert" size={28} />
-        <p><strong>{error}</strong></p>
-        <p><button className="btn" onClick={() => navigate('/chamados')}>Voltar à fila</button></p>
+        <p>
+          <strong>{error}</strong>
+        </p>
+        <p>
+          <button className="btn" onClick={() => navigate('/chamados')}>
+            Voltar à fila
+          </button>
+        </p>
       </div>
     );
   }
@@ -106,7 +112,11 @@ export function TicketDetailView() {
 
   return (
     <div className="detail">
-      <button className="btn btn--fantasma btn--sm" onClick={() => navigate('/chamados')} style={{ marginBottom: 16 }}>
+      <button
+        className="btn btn--fantasma btn--sm"
+        onClick={() => navigate('/chamados')}
+        style={{ marginBottom: 16 }}
+      >
         <Icon name="arrowLeft" size={14} /> Voltar à fila
       </button>
 
@@ -132,12 +142,22 @@ export function TicketDetailView() {
 
       <div className="detail__updates">
         <UpdateBox label="Status">
-          <Lamp cor={corStatus[statusExibido].cor} acesa={corStatus[statusExibido].acesa} size={8} />
+          <Lamp
+            cor={corStatus[statusExibido].cor}
+            acesa={corStatus[statusExibido].acesa}
+            size={8}
+          />
           {statusExibido}
         </UpdateBox>
         <UpdateBox label="Responsável">
-          <Lamp cor={statusExibido !== 'Aberto' ? 'var(--lamp-resolvido)' : 'var(--lamp-apagada)'} acesa={statusExibido !== 'Aberto'} size={8} />
-          {statusExibido !== 'Aberto' ? (data.responsavel ?? 'mariana.andrade') : 'Aguardando triagem'}
+          <Lamp
+            cor={statusExibido !== 'Aberto' ? 'var(--lamp-resolvido)' : 'var(--lamp-apagada)'}
+            acesa={statusExibido !== 'Aberto'}
+            size={8}
+          />
+          {statusExibido !== 'Aberto'
+            ? (data.responsavel ?? 'mariana.andrade')
+            : 'Aguardando triagem'}
         </UpdateBox>
         <UpdateBox label="Aberto em">{txHora(data.created_at)}</UpdateBox>
         <UpdateBox label="Espera">{tempoDecorrido(data.created_at)}</UpdateBox>
@@ -151,7 +171,9 @@ export function TicketDetailView() {
 
       <section className="instrument" aria-label="Descrição do chamado">
         <div className="instrument__head">
-          <span className="instrument__title"><Icon name="tag" size={13} /> Descrição</span>
+          <span className="instrument__title">
+            <Icon name="tag" size={13} /> Descrição
+          </span>
         </div>
         <div className="instrument__body">
           <p className="detail__desc">{data.description}</p>
@@ -160,7 +182,9 @@ export function TicketDetailView() {
 
       <section className="instrument" aria-label="Ações do chamado">
         <div className="instrument__head">
-          <span className="instrument__title"><Icon name="bolt" size={13} /> Operação</span>
+          <span className="instrument__title">
+            <Icon name="bolt" size={13} /> Operação
+          </span>
         </div>
         <div className="instrument__body" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {pode && statusExibido === 'Aberto' && (
@@ -207,7 +231,10 @@ function UpdateBox({ label, children }: { label: string; children: React.ReactNo
   return (
     <div className="detail__update">
       <div className="detail__update-label">{label}</div>
-      <div className="detail__update-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        className="detail__update-value"
+        style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+      >
         {children}
       </div>
     </div>

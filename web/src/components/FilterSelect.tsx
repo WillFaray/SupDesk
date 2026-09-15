@@ -9,7 +9,12 @@ interface FilterSelectProps<T extends string> {
 }
 
 /** Dropdown de filtro no tema do app (substitui o select nativo da filterbar). */
-export function FilterSelect<T extends string>({ label, opcoes, valor, onChange }: FilterSelectProps<T>) {
+export function FilterSelect<T extends string>({
+  label,
+  opcoes,
+  valor,
+  onChange,
+}: FilterSelectProps<T>) {
   const [aberto, setAberto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

@@ -62,7 +62,7 @@ export function Modal({
   useEffect(() => {
     if (aberto && contentRef.current) {
       const focavel = contentRef.current.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
       focavel?.focus();
     }
@@ -82,7 +82,9 @@ export function Modal({
     >
       <div ref={contentRef} className="modal__content" role="document">
         <header className="modal__header">
-          <h2 id="modal-titulo" className="modal__titulo">{titulo}</h2>
+          <h2 id="modal-titulo" className="modal__titulo">
+            {titulo}
+          </h2>
           <button
             className="modal__close"
             onClick={aoFechar}
@@ -104,11 +106,7 @@ export function Modal({
         {(acaoPrimaria || acaoSecundaria) && (
           <footer className="modal__footer">
             {acaoSecundaria && (
-              <button
-                className="btn btn--fantasma"
-                onClick={acaoSecundaria.onClick}
-                type="button"
-              >
+              <button className="btn btn--fantasma" onClick={acaoSecundaria.onClick} type="button">
                 {acaoSecundaria.label}
               </button>
             )}
@@ -121,7 +119,11 @@ export function Modal({
               >
                 {acaoPrimaria.carregando ? (
                   <>
-                    <span className="spinner" style={{ width: 14, height: 14 }} aria-hidden="true" />
+                    <span
+                      className="spinner"
+                      style={{ width: 14, height: 14 }}
+                      aria-hidden="true"
+                    />
                     {acaoPrimaria.label}
                   </>
                 ) : (

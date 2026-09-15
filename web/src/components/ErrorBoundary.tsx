@@ -71,8 +71,8 @@ function ErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
         </span>
         <h2 className="ebound__title">Algo deu errado</h2>
         <p className="ebound__msg">
-          Ocorreu um erro inesperado ao renderizar esta tela. Tente novamente —
-          seus dados estão seguros.
+          Ocorreu um erro inesperado ao renderizar esta tela. Tente novamente — seus dados estão
+          seguros.
         </p>
         <code className="ebound__code u-mono">{mensagem}</code>
         <div className="ebound__actions">
@@ -94,9 +94,5 @@ function ErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
  */
 export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   const location = useLocation();
-  return (
-    <ErrorBoundary resetKey={location.key}>
-      {children}
-    </ErrorBoundary>
-  );
+  return <ErrorBoundary resetKey={location.key}>{children}</ErrorBoundary>;
 }

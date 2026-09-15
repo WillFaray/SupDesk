@@ -35,10 +35,16 @@ export function BoardView() {
     for (const c of meus) {
       if (chats[c.id]) continue;
       listarComentarios(c.id)
-        .then((cs) => { if (vivo) setChats((prev) => ({ ...prev, [c.id]: cs })); })
-        .catch(() => { /* silencioso: prévia é opcional */ });
+        .then((cs) => {
+          if (vivo) setChats((prev) => ({ ...prev, [c.id]: cs }));
+        })
+        .catch(() => {
+          /* silencioso: prévia é opcional */
+        });
     }
-    return () => { vivo = false; };
+    return () => {
+      vivo = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meus.map((c) => c.id).join(',')]);
 
@@ -53,23 +59,26 @@ export function BoardView() {
         <div>
           <h1 className="page-head__title">Meu painel</h1>
           <p className="page-head__sub">
-            {meus.length} {meus.length === 1 ? 'chamado em andamento' : 'chamados em andamento'} com você
+            {meus.length} {meus.length === 1 ? 'chamado em andamento' : 'chamados em andamento'} com
+            você
           </p>
         </div>
       </div>
 
       {error && (
-        <p className="field__error" role="alert"><Icon name="alert" size={14} /> {error}</p>
+        <p className="field__error" role="alert">
+          <Icon name="alert" size={14} /> {error}
+        </p>
       )}
 
-      {loading && !data && (
-        <Loading label="Carregando painel…" />
-      )}
+      {loading && !data && <Loading label="Carregando painel…" />}
 
       {data && meus.length === 0 && !loading && (
         <div className="panel-empty">
           <Icon name="check" size={28} />
-          <p><strong>Nada em andamento</strong></p>
+          <p>
+            <strong>Nada em andamento</strong>
+          </p>
           <p>Nenhum chamado em andamento com você como responsável ou autor.</p>
         </div>
       )}
@@ -86,9 +95,7 @@ export function BoardView() {
                   <span className="board__count">{cartoes.length}</span>
                 </header>
 
-                {cartoes.length === 0 && (
-                  <p className="board__vazio">—</p>
-                )}
+                {cartoes.length === 0 && <p className="board__vazio">—</p>}
 
                 {cartoes.map((c) => {
                   const msg = ultimaMsg(c.id);
