@@ -1,0 +1,22 @@
+# Dependências e artefatos de build
+node_modules/
+dist/
+web/dist/
+*.tsbuildinfo
+
+# Lockfiles (gerados pelo npm)
+package-lock.json
+web/package-lock.json
+
+# Documentação de produto e artefatos que não são código
+*.md
+*.sql
+*.rest
+
+# Ambiente e logs
+.env
+.env.*
+*.log
+
+# Saídas de ferramentas
+coverage/

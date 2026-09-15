@@ -1,0 +1,18 @@
+{
+    "printWidth": 100,
+    "tabWidth": 4,
+    "singleQuote": true,
+    "semi": true,
+    "trailingComma": "all",
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "endOfLine": "auto",
+    "overrides": [
+        {
+            "files": ["web/**/*.{ts,tsx,js,mjs,css,html,json}"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
+}

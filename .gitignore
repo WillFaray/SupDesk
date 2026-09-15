@@ -1,5 +1,13 @@
 node_modules/
-.vscode/
+
+# VS Code: versiona apenas o que ajuda o time (settings sem credenciais + extensões
+# recomendadas); o resto do diretório fica local.
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Artefatos de build incremental do TypeScript
+*.tsbuildinfo
 
 *.log
 npm-debug.log*

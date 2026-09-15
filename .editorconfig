@@ -1,0 +1,22 @@
+root = true
+
+# Padrão atual do repositório: CRLF no disco (Windows) + newline final.
+# O Prettier está com endOfLine = "auto" para não reescrever os arquivos existentes.
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Backend (src/**): 4 espaços — ver .prettierrc.json (tabWidth padrão)
+# Frontend (web/**): 2 espaços — ver override no .prettierrc.json
+[web/**]
+indent_size = 2
+
+[*.{json,yml,yaml,html,css}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
