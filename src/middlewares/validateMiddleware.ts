@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import * as z from 'zod';
 
 export const validate = (schema: z.ZodSchema) => {

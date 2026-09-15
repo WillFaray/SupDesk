@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import pool from '../database.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
 
@@ -34,7 +34,7 @@ export const listTickets = async (
         let query =
             'SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel FROM tickets JOIN users AS autor ON tickets.user_id = autor.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id WHERE 1=1';
 
-        let values: any[] = [];
+        const values: any[] = [];
         let valueIndex = 1;
 
         if (role === 'user') {

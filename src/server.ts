@@ -7,7 +7,6 @@ import 'dotenv/config';
 import { errorHandler } from './middlewares/erroHandler.js';
 import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
 import { setupSwagger } from './swagger.js';
-import { appendFile } from 'node:fs';
 
 // Validar variáveis de ambiente obrigatórias
 if (!process.env.JWT_SECRET) {

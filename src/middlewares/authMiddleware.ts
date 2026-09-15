@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import jwt from 'jsonwebtoken';
 
 export interface AuthRequest extends express.Request {
@@ -28,7 +28,7 @@ export const verifyToken = (
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
         req.user = decoded;
         return next();
-    } catch (error) {
+    } catch {
         return res.status(401).json({ error: 'Token inválido.' });
     }
 };

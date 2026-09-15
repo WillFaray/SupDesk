@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../database.js';
@@ -43,11 +43,8 @@ export const login = async (
     }
 };
 
-export const logout = async (
-    req: AuthRequest,
-    res: express.Response,
-    next: express.NextFunction,
-) => {
+// Sem estado no servidor: o logout é apenas local (o cliente descarta o token).
+export const logout = (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
     try {
         return res.status(200).json({
             message: 'Logout realizado com sucesso',

@@ -7,7 +7,7 @@ export const loginLimiter = rateLimit({
     message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
     standardHeaders: true, // Retorna info em `RateLimit-*` headers
     legacyHeaders: false, // Desabilita `X-RateLimit-*` headers
-    keyGenerator: (req, res) => {
+    keyGenerator: (req, _res) => {
         // Usa o email como chave para limitar por usuário
         return req.body?.email || req.ip;
     },

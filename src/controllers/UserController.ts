@@ -1,4 +1,4 @@
-import express from 'express';
+import type express from 'express';
 import pool from '../database.js';
 import bcrypt from 'bcrypt';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
