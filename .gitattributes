@@ -1,0 +1,27 @@
+# Padronização de terminações de linha: LF em todo o repositório.
+# O Git guarda LF e materializa LF em qualquer sistema operacional (Windows incluído),
+# eliminando os falsos "arquivo inteiro alterado" em diffs e revisões.
+* text=auto eol=lf
+
+# Exceções: scripts do Windows precisam de CRLF para rodar no cmd.exe/PowerShell.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binários: o Git nunca deve normalizar nem tentar fazer diff (evita corrupção).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svgz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.xlsx binary
+*.sqlite binary

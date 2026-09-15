@@ -22,5 +22,5 @@
     },
     "eslint.validate": ["javascript", "typescript", "typescriptreact"],
     "prettier.requireConfig": true,
-    "files.eol": "\r\n"
+    "files.eol": "\n"
 }

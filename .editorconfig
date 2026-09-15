@@ -1,10 +1,10 @@
 root = true
 
-# Padrão atual do repositório: CRLF no disco (Windows) + newline final.
-# O Prettier está com endOfLine = "auto" para não reescrever os arquivos existentes.
+# Padrão do repositório: LF (ver .gitattributes) + newline final.
+# O Prettier está com endOfLine = "lf" para manter o mesmo padrão.
 [*]
 charset = utf-8
-end_of_line = crlf
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
