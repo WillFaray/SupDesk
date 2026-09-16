@@ -8,7 +8,6 @@ interface FilterSelectProps<T extends string> {
   onChange: (v: T) => void;
 }
 
-/** Dropdown de filtro no tema do app (substitui o select nativo da filterbar). */
 export function FilterSelect<T extends string>({
   label,
   opcoes,

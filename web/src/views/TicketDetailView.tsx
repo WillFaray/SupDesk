@@ -19,11 +19,9 @@ export function TicketDetailView() {
   const toast = useToast();
   const { data, comentarios, error, loading, recarregar } = useChamado(tid);
 
-  // Estado local para optimistic update do status
   const [statusOtimista, setStatusOtimista] = useState<Status | null>(null);
   const [erroOtimista, setErroOtimista] = useState<string | null>(null);
 
-  // Estado para deletar chamado (modal + optimistic)
   const [deletando, setDeletando] = useState(false);
   const [modalDeletarAberto, setModalDeletarAberto] = useState(false);
 
@@ -44,24 +42,20 @@ export function TicketDetailView() {
 
     const statusAnterior = data.status;
 
-    // 1) Atualiza a UI imediatamente (optimistic)
     setStatusOtimista(novoStatus);
     setErroOtimista(null);
 
-    // 2) Chama a API em background
     try {
       await atualizarStatus(data.id, novoStatus);
       toast.sucesso(`Chamado #${data.id} em "${novoStatus}".`);
       void recarregarSync(); // resync silencioso
     } catch {
-      // 3) Rollback em caso de erro
       setStatusOtimista(null);
       setErroOtimista(`Não foi possível atualizar o status. Revertido para "${statusAnterior}".`);
       toast.erro('Não foi possível atualizar o status do chamado.');
     }
   }
 
-  // --- Deletar chamado (optimistic + modal) ---
   function abrirModalDeletar() {
     setModalDeletarAberto(true);
   }
@@ -76,7 +70,6 @@ export function TicketDetailView() {
     setDeletando(true);
 
     try {
-      // Optimistic: navega imediatamente para a fila
       await excluirChamado(data.id);
       toast.sucesso(`Chamado #${data.id} excluído.`);
       fecharModalDeletar();

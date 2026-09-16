@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import type { Prioridade, Status } from '../lib/types';
 import type { Categoria } from '../lib/types';
 
-/* --- Lâmpada pura --- */
 export function Lamp({
   cor,
   acesa = true,
@@ -21,7 +20,6 @@ export function Lamp({
   );
 }
 
-/* --- Cor de estado --- */
 export const corStatus: Record<Status, { cor: string; acesa: boolean }> = {
   Aberto: { cor: 'var(--lamp-aberto)', acesa: false },
   'Em andamento': { cor: 'var(--lamp-andamento)', acesa: true },

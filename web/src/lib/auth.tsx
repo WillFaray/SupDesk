@@ -18,8 +18,6 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
-/* --- Persistência de sessão (localStorage) --- */
-
 const USER_KEY = 'supdesk_user';
 
 function usuarioPersistido(): UsuarioLogado | null {
@@ -52,7 +50,6 @@ function tokenPersistidoExpirado(): boolean {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UsuarioLogado | null>(() => {
     if (tokenPersistidoExpirado()) {
-      // JWT expirado: a sessão persistida não é mais válida.
       localStorage.removeItem(USER_KEY);
       setToken(null);
       return null;
@@ -66,10 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const expulsar = useCallback(() => {
     setUser(null);
     localStorage.removeItem(USER_KEY);
-    setToken(null); // limpa também o token em memória do request layer
+    setToken(null);
   }, []);
 
-  // Request interceptor: 401 com sessão ativa → logout automático.
   useEffect(() => {
     definirAoNaoAutorizado(() => {
       expulsar();

@@ -6,11 +6,8 @@ import type { Chamado, Comentario, FiltrosChamados, ListaChamados, Usuario } fro
 
 export const DEMO_LABEL = IS_DEMO;
 
-/* ============================================================================
-   Camada de dados — mesma interface para API real e modo demo.
-   O modo demo (VITE_DEMO=true) devolve dados sintéticos ROTULADOS, apenas para
-   permitir visualizar o produto sem o backend. A UI exibe o selo "Demo".
-   ============================================================================ */
+// Camada de dados: mesma interface para API real e modo demo (VITE_DEMO=true,
+// dados sintéticos rotulados com selo "Demo" na UI).
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let demoSeq = 10_000;
@@ -125,7 +122,6 @@ export function useUsuarios() {
   return { data, error, loading, recarregar: carregar };
 }
 
-/* Ações mutantes — retornam o chamado atualizado. */
 export async function listarComentarios(id: number): Promise<Comentario[]> {
   if (IS_DEMO) {
     await delay(120);

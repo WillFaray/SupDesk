@@ -31,7 +31,6 @@ export function ThreadComentarios({
   const [erroOtimista, setErroOtimista] = useState<string | null>(null);
   const toast = useToast();
 
-  // Deriva os comentários a exibir: otimista + servidor
   const comentariosExibidos = comentarioOtimista
     ? [comentarioOtimista, ...comentarios]
     : comentarios;
@@ -43,7 +42,6 @@ export function ThreadComentarios({
 
   function aoDigitar(val: string) {
     setMsg(val);
-    // setErro(null); // removed unused state
     if (tocado) setCamposErro(validarComentario(val));
   }
 
@@ -53,10 +51,9 @@ export function ThreadComentarios({
     setCamposErro(erros);
     if (erros.msg) return;
 
-    // 1) Optimistic: cria comentário local imediatamente
     const agora = new Date().toISOString();
     const otimista: Comentario = {
-      id: Date.now(), // ID temporário
+      id: Date.now(),
       message: msg.trim(),
       created_at: agora,
       autor_do_comentario: 'você',
@@ -64,15 +61,13 @@ export function ThreadComentarios({
     };
     setComentarioOtimista(otimista);
     setErroOtimista(null);
-    setMsg(''); // limpa o input imediatamente
+    setMsg('');
 
-    // 2) API em background
     try {
       await comentarChamado(id, otimista.message);
       toast.sucesso('Comentário registrado.');
-      await aoEnviar(); // recarrega do servidor
+      await aoEnviar();
     } catch {
-      // 3) Rollback: remove o otimista e mostra erro
       setComentarioOtimista(null);
       setErroOtimista('Não foi possível registrar o comentário. Tente novamente.');
       toast.erro('Não foi possível registrar o comentário.');

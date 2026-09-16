@@ -1,63 +1,50 @@
-/* ==========================================================================
-   SUPDESK — design tokens
-   Tema claro por padrão; mundo escuro via [data-theme="dark"].
-   Superfícies planas, hairlines discretas, UM acento, status em pontos chapados.
-   ========================================================================== */
-
 :root {
-  /* --- Superfícies (claro) --- */
   --ground-0: #f6f7f9; /* fundo */
   --ground-1: #ffffff; /* painel */
   --ground-2: #f1f3f6; /* painel elevado / hover */
   --ground-3: #e6e9ef; /* hover mais claro */
 
-  /* --- Hairlines --- */
   --hairline: rgba(17, 24, 39, 0.08);
   --hairline-strong: rgba(17, 24, 39, 0.18);
 
-  /* --- Texto --- */
   --ink-strong: #111827;
   --ink: #374151;
   --ink-muted: #6b7280;
   --ink-faint: #9aa3b2;
 
-  /* --- Acento único (uso contido) --- */
+  /* Acento único: uso contido */
   --accent: #3b6fe0;
   --accent-soft: rgba(59, 111, 224, 0.09);
   --accent-contrast: #ffffff;
 
-  /* --- Status (pontos chapados; azul amarra no acento, demais na mesma luminosidade) --- */
+  /* Pontos chapados: azul amarra no acento, demais na mesma luminosidade */
   --lamp-aberto: var(--accent);
   --lamp-andamento: #c9884a;
   --lamp-resolvido: #3f9e6e;
   --lamp-vermelha: #d15b52;
   --lamp-apagada: #c3cad4;
 
-  /* --- Prioridade (alinha com status: verde/âmbar/vermelho) --- */
+  /* Prioridade alinha com status: verde/âmbar/vermelho */
   --prio-baixa: #3f9e6e;
   --prio-media: #c9884a;
   --prio-alta: #d15b52;
 
-  /* --- Categoria (derivadas do acento/inks — harmonia garantida nos dois temas) --- */
+  /* Categoria: derivadas do acento/inks, harmonia garantida nos dois temas */
   --cat-hardware: color-mix(in srgb, var(--accent) 55%, var(--ink-muted));
   --cat-software: #8a76cf;
   --cat-rede: #3f9e94;
   --cat-outros: #7b8694;
 
-  /* --- Tipografia --- */
   --font-display: 'Space Grotesk', 'DM Sans', system-ui, sans-serif;
   --font-ui: 'DM Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'DM Mono', ui-monospace, 'SFMono-Regular', monospace;
 
-  /* --- Métrica --- */
   --hair: 1px;
   --radius-sm: 6px;
   --radius-md: 10px;
 
-  /* --- Focus --- */
   --focus: 0 0 0 2px var(--ground-0), 0 0 0 4px var(--accent);
 
-  /* --- Motion --- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --t-fast: 120ms;
   --t-med: 220ms;
@@ -65,7 +52,7 @@
   color-scheme: light;
 }
 
-/* --- Mundo escuro (opt-in via toggle; inicial = prefers-color-scheme) --- */
+/* Mundo escuro: opt-in via toggle; inicial = prefers-color-scheme */
 [data-theme='dark'] {
   --ground-0: #0f1115;
   --ground-1: #16181d;

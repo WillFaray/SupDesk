@@ -32,14 +32,12 @@ export function Modal({
   const contentRef = useRef<HTMLDivElement>(null);
   const focoAnterior = useRef<HTMLElement | null>(null);
 
-  // Fecha ao clicar no overlay
   function aoCliqueOverlay(e: React.MouseEvent) {
     if (e.target === overlayRef.current) {
       aoFechar();
     }
   }
 
-  // Fecha com Escape
   useEffect(() => {
     function aoTecla(e: KeyboardEvent) {
       if (e.key === 'Escape' && aberto) {
@@ -58,7 +56,6 @@ export function Modal({
     };
   }, [aberto, aoFechar]);
 
-  // Foca no primeiro elemento interativo ao abrir
   useEffect(() => {
     if (aberto && contentRef.current) {
       const focavel = contentRef.current.querySelector<HTMLElement>(
@@ -137,5 +134,3 @@ export function Modal({
     </div>
   );
 }
-
-// Note: styles are in components.css

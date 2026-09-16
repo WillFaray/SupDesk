@@ -14,7 +14,6 @@ const TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT) || 15_000;
 const TOKEN_KEY = 'supdesk_token';
 let token: string | null = localStorage.getItem(TOKEN_KEY);
 
-/* --- Interceptor de sessão: centraliza o logout automático em 401 --- */
 type AoNaoAutorizado = () => void;
 let aoNaoAutorizado: AoNaoAutorizado | null = null;
 
@@ -38,7 +37,6 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (init.body) headers['Content-Type'] = 'application/json';
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  // Timeout central: aborta a requisição que exceder o limite configurado.
   const controlador = new AbortController();
   const timer = setTimeout(() => controlador.abort(), TIMEOUT_MS);
 

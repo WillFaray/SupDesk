@@ -38,7 +38,6 @@ export const updateUser = async (
         const userId = req.user.id;
         const { username, email, password_hash } = req.body;
 
-        // Construir query dinâmica baseada no que foi fornecido
         const updates: string[] = [];
         const values: any[] = [];
         let paramIndex = 1;

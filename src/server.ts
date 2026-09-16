@@ -8,7 +8,6 @@ import { errorHandler } from './middlewares/erroHandler.js';
 import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
 import { setupSwagger } from './swagger.js';
 
-// Validar variáveis de ambiente obrigatórias
 if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET não definido em .env');
 }

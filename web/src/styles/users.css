@@ -1,8 +1,4 @@
-﻿/* ==========================================================================
-   TABELA DE USUÁRIOS — grade própria (4 colunas), alinhada cabeçalho ↔ linha
-   ========================================================================== */
-
-.utable {
+﻿.utable {
   border: var(--hair) solid var(--hairline);
   border-radius: var(--radius-md);
   background: var(--ground-1);

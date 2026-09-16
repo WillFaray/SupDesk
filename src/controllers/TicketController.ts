@@ -209,7 +209,6 @@ export const getTicket = async (
 
         const values = [id];
 
-        // Usuários comuns só podem ver seus próprios tickets
         if (role === 'user') {
             query += ' AND tickets.user_id = $2';
             values.push(userId);

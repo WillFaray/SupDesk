@@ -1,7 +1,3 @@
-/* ==========================================================================
-   LOADING — spinner inline (botões) e painel de espera (telas)
-   ========================================================================== */
-
 export function Spinner({ size = 16, label = 'Carregando' }: { size?: number; label?: string }) {
   return (
     <span

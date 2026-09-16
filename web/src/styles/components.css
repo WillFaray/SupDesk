@@ -1,8 +1,3 @@
-/* ==========================================================================
-   COMPONENTES — pontos de status, chips, botões, abas e selects de filtro
-   ========================================================================== */
-
-/* --- Ponto de status (flat, sem glow) --- */
 .lamp {
   --lamp-color: var(--lamp-apagada);
   width: 8px;
@@ -16,7 +11,6 @@
   opacity: 1;
 }
 
-/* --- Chips (categoria, prioridade, status) --- */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -26,7 +20,6 @@
   white-space: nowrap;
 }
 
-/* --- Botões (flat) --- */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -97,7 +90,6 @@
   margin-top: 4px;
 }
 
-/* --- Barra de filtros: abas + selects compactos --- */
 .filterbar {
   display: flex;
   flex-wrap: wrap;
@@ -136,7 +128,6 @@
   margin-left: auto;
 }
 
-/* --- Dropdown de filtro (no tema, substitui o select nativo) --- */
 .fselect {
   position: relative;
 }
@@ -227,7 +218,6 @@
   }
 }
 
-/* --- Tela de falha (Error Boundary) --- */
 .ebound {
   min-height: 100%;
   display: grid;
@@ -282,9 +272,6 @@
   gap: 8px;
 }
 
-/* ==========================================================================
-   MODAL
-   ========================================================================== */
 .modal__overlay {
   position: fixed;
   inset: 0;

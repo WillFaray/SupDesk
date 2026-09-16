@@ -1,7 +1,3 @@
-/* ==========================================================================
-   QUADRO "MEU PAINEL" — colunas por prioridade, cartões com prévia do chat
-   ========================================================================== */
-
 .board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -1,7 +1,3 @@
-/* ==========================================================================
-   FORMULÁRIOS — campos de instrumento
-   ========================================================================== */
-
 .field {
   display: flex;
   flex-direction: column;
@@ -75,7 +71,6 @@
   color: var(--ink-faint);
 }
 
-/* --- Estado de erro nos campos --- */
 .field__input--erro,
 .field__textarea--erro,
 .field__select--erro {
@@ -89,7 +84,6 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--lamp-vermelha) 35%, transparent);
 }
 
-/* --- Seletores de lâmpada (prioridade / categoria) --- */
 .pickrow {
   display: flex;
   flex-wrap: wrap;

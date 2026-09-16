@@ -1,7 +1,3 @@
-/* ==========================================================================
-   DETALHE DO CHAMADO — o registro de instrumento completo
-   ========================================================================== */
-
 .detail {
   max-width: 860px;
 }
@@ -48,7 +44,6 @@
   height: 7px;
 }
 
-/* --- Massa de instrumento --- */
 .instrument {
   border: var(--hair) solid var(--hairline);
   border-radius: var(--radius-md);
@@ -113,14 +108,12 @@
   height: 8px;
 }
 
-/* --- Descrição --- */
 .detail__desc {
   font-size: 14.5px;
   line-height: 1.65;
   color: var(--ink);
 }
 
-/* --- Linha de comentários --- */
 .thread {
   display: flex;
   flex-direction: column;

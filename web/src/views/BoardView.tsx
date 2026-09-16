@@ -22,7 +22,6 @@ export function BoardView() {
   const { data, error, loading } = useChamados({ status: 'Em andamento', limit: 100 });
   const [chats, setChats] = useState<Record<number, Comentario[]>>({});
 
-  // Quadro mostra os chamados em andamento em que o usuário é responsável ou autor.
   const meus = useMemo(() => {
     if (!data) return [];
     const me = user?.username;

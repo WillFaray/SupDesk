@@ -1,9 +1,4 @@
-/* ==========================================================================
-   MODO DEMONSTRAÇÃO — dados sintéticos ROTULADOS.
-   Usado apenas quando VITE_DEMO=true, para ver o produto sem o backend.
-   A interface mostra um selo "DEMO" quando este modo está ativo.
-   Nunca misturar com dados reais.
-   ========================================================================== */
+// Demonstração (VITE_DEMO=true): dados sintéticos rotulados. Nunca misturar com dados reais.
 
 import type { Chamado, Comentario, Usuario } from './types';
 
