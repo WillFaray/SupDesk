@@ -1,18 +1,15 @@
 {
-    // Conexão local do SQLTools. A senha NÃO fica versionada: com `askForPassword`
-    // o SQLTools pede a credencial no momento de conectar, em vez de guardá-la
-    // em texto plano nos settings (o arquivo é versionado).
     "sqltools.connections": [
         {
             "ssh": "Disabled",
             "previewLimit": 50,
             "server": "localhost",
             "port": 5432,
+            "askForPassword": true,
             "driver": "PostgreSQL",
             "username": "postgres",
             "name": "supdesk",
-            "database": "supdesk",
-            "askForPassword": true
+            "database": "supdesk"
         }
     ],
     "editor.defaultFormatter": "esbenp.prettier-vscode",
