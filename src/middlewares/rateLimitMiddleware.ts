@@ -7,7 +7,8 @@ export const loginLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     keyGenerator: (req, _res) => {
-        return req.body?.email || req.ip;
+        const email = (req.body as { email?: string } | undefined)?.email;
+        return email || req.ip || 'unknown';
     },
 });
 
