@@ -1,5 +1,10 @@
-### Listar Usuários
+### Listar Usuários (somente admin; usuário comum recebe 403)
 GET http://localhost:3000/usuarios
+Authorization: Bearer <token_de_admin>
+
+### Dados do próprio usuário (GET /usuarios/me)
+GET http://localhost:3000/usuarios/me
+Authorization: Bearer <token>
 
 ### Listar TODOS os chamados (padrão: 10 itens da página 1)
 GET http://localhost:3000/chamados
@@ -13,38 +18,39 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6I
 GET http://localhost:3000/chamados?status=Aberto&priority=Alta&page=2&limit=5
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4MzQyODYsImV4cCI6MTc4Njg2MzA4Nn0.ON2sXKVnMOQXQp_vUqaL1Lkv6w0Y4k15-FSA4GR2NrE
 
-### Criar Usuário
+### Criar Usuário (cadastro público; role no body é IGNORADO — papel inicial: usuario)
 POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
   "username": "william_user",
-  "role": "usuario",
   "email": "william_user@teste.com",
   "password_hash": "senha123"
 }
 
-### Criar Usuário errado
+### Criar Usuário errado (email inválido → 400)
 POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
   "username": "william_error",
-  "role": "usuario",
   "email": "william_error-teste.com",
   "password_hash": "senha123"
 }
 
-### Criar Usuário Admin
+### Tentativa de auto-promoção a admin (role é descartado → conta criada como 'usuario')
 POST http://localhost:3000/usuarios
 Content-Type: application/json
 
 {
-  "username": "william_admin",
+  "username": "william_hacker",
   "role": "admin",
-  "email": "william_admin@teste.com",
-  "password_hash": "senha1234"
+  "email": "william_hacker@teste.com",
+  "password_hash": "senha12345"
 }
+
+# OBS: promoção para analista/admin é feita por um administrador, ex.:
+# UPDATE users SET role = 'admin' WHERE email = 'fulano@teste.com';
 
 ### Criar Chamado
 POST http://localhost:3000/chamados
@@ -126,6 +132,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6I
   "password_hash": "nova_senha_super_segura"
 }
 
-### Fazer Logout
+### Fazer Logout (revoga o token no servidor; requests seguintes com o mesmo token → 401)
 POST http://localhost:3000/auth/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3ODY4NDQwMTQsImV4cCI6MTc4Njg3MjgxNH0.Q8VHeM9imFsrIPR6h_zahH24_asgHas8WF7aYUt6ep8
+Authorization: Bearer <token>
