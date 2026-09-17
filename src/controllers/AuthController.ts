@@ -2,52 +2,72 @@ import type express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../database.js';
+import { revokeToken } from '../tokenRevocation.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
+import type { LoginDTO } from '../schemas/userSchema.js';
+import type { JwtClaims, UserRow } from '../types/db.js';
 
 export const login = async (
-    req: express.Request,
+    req: AuthRequest<LoginDTO>,
     res: express.Response,
     next: express.NextFunction,
-) => {
+): Promise<void> => {
     try {
         const { email, password } = req.body;
-        const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        const userResult = await pool.query<UserRow>('SELECT * FROM users WHERE email = $1', [
+            email,
+        ]);
+        const user = userResult.rows[0];
 
-        if (userResult.rows.length === 0) {
-            return res.status(401).json({ error: 'Credenciais inválidas' });
+        if (!user) {
+            res.status(401).json({ error: 'Credenciais inválidas' });
+            return;
         }
 
-        const user = userResult.rows[0];
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
         if (!isPasswordValid) {
-            return res.status(401).json({ error: 'Email ou senha inválidos' });
+            res.status(401).json({ error: 'Email ou senha inválidos' });
+            return;
         }
 
-        const token = jwt.sign(
-            {
-                id: user.id,
-                role: user.role,
-            },
-            process.env.JWT_SECRET as string,
-            { expiresIn: '8h' },
-        );
+        const claims: Omit<JwtClaims, 'iat' | 'exp'> = {
+            id: user.id,
+            role: user.role,
+        };
 
-        return res.status(200).json({
+        const token = jwt.sign(claims, process.env.JWT_SECRET as string, {
+            expiresIn: '8h',
+        });
+
+        res.status(200).json({
             message: 'Login bem-sucedido',
             token,
-            user: { id: user.id, username: user.username, role: user.role },
+            user: { id: user.id, username: user.username, email: user.email, role: user.role },
         });
     } catch (error) {
         next(error);
     }
 };
 
-// Sem estado no servidor: o logout é apenas local (o cliente descarta o token).
-export const logout = (req: AuthRequest, res: express.Response, next: express.NextFunction) => {
+export const logout = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+): Promise<void> => {
     try {
-        return res.status(200).json({
-            message: 'Logout realizado com sucesso',
+        const token = req.headers['authorization']?.split(' ')[1];
+        const claims = req.user;
+
+        if (!token || !claims) {
+            res.status(401).json({ error: 'Token não fornecido.' });
+            return;
+        }
+
+        await revokeToken(token, claims.exp);
+
+        res.status(200).json({
+            message: 'Logout realizado com sucesso. O token foi revogado no servidor.',
             token: null,
         });
     } catch (error) {

@@ -1,5 +1,7 @@
 -- Apaga as tabelas se já existirem e remove quaisquer dependências
+DROP TABLE IF EXISTS ticket_comments CASCADE;
 DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS revoked_tokens CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 -- Cria a tabela de usuários
 CREATE TABLE users (
@@ -11,6 +13,14 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- Tokens JWT revogados no logout (guardados por hash até a expiração)
+CREATE TABLE revoked_tokens (
+    id SERIAL PRIMARY KEY,
+    token_hash CHAR(64) UNIQUE NOT NULL,
+    revoked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL
+);
+CREATE INDEX idx_revoked_tokens_hash ON revoked_tokens (token_hash);
 -- Cria a tabela de chamados
 CREATE TABLE tickets (
     id SERIAL PRIMARY KEY,
