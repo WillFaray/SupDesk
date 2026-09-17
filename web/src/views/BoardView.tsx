@@ -38,13 +38,11 @@ export function BoardView() {
           if (vivo) setChats((prev) => ({ ...prev, [c.id]: cs }));
         })
         .catch(() => {
-          /* silencioso: prévia é opcional */
         });
     }
     return () => {
       vivo = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meus.map((c) => c.id).join(',')]);
 
   function ultimaMsg(id: number): Comentario | null {

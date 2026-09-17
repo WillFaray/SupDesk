@@ -57,7 +57,6 @@ export function LoginView() {
     try {
       let usuario: UsuarioLogado;
       if (demo) {
-        // Modo demo: fake login sempre aceito, selo DEMO já visível.
         await new Promise((r) => setTimeout(r, 400));
         setToken('demo-token');
         usuario = {
