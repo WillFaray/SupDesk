@@ -69,16 +69,15 @@ export default tseslint.config(
                     varsIgnorePattern: '^_',
                 },
             ],
-            // `any` explícito é dívida: avisa sem quebrar o build.
-            '@typescript-eslint/no-explicit-any': 'warn',
-            // Dívida de tipagem conhecida: `req.body` (Express), as linhas do `pg` e o
-            // payload do `jwt.verify` chegam como `any`. Ficam como aviso — visíveis e
-            // rastreáveis — até existirem DTOs/tipos de domínio no backend.
-            '@typescript-eslint/no-unsafe-assignment': 'warn',
-            '@typescript-eslint/no-unsafe-member-access': 'warn',
-            '@typescript-eslint/no-unsafe-argument': 'warn',
-            '@typescript-eslint/no-unsafe-return': 'warn',
-            '@typescript-eslint/no-unsafe-call': 'warn',
+            // `any` explícito não é aceito (tipos de domínio em src/types/db.ts).
+            '@typescript-eslint/no-explicit-any': 'error',
+            // DTOs tipados + validação Zod eliminaram o acesso `unsafe` ao body,
+            // às linhas do `pg` e ao payload do `jwt.verify`. Regressões viram erro.
+            '@typescript-eslint/no-unsafe-assignment': 'error',
+            '@typescript-eslint/no-unsafe-member-access': 'error',
+            '@typescript-eslint/no-unsafe-argument': 'error',
+            '@typescript-eslint/no-unsafe-return': 'error',
+            '@typescript-eslint/no-unsafe-call': 'error',
             // Handlers async do Express 5: evita promessas flutuantes (banco, bcrypt, etc.).
             '@typescript-eslint/no-floating-promises': 'error',
             '@typescript-eslint/no-misused-promises': 'error',
