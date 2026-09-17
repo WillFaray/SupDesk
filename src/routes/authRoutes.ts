@@ -2,6 +2,8 @@ import express from 'express';
 import { login, logout } from '../controllers/AuthController.js';
 import { loginLimiter } from '../middlewares/rateLimitMiddleware.js';
 import { verifyToken } from '../middlewares/authMiddleware.js';
+import { validate } from '../middlewares/validateMiddleware.js';
+import { loginSchema } from '../schemas/userSchema.js';
 
 const router = express.Router();
 
@@ -10,6 +12,9 @@ const router = express.Router();
  * /auth/login:
  *   post:
  *     summary: Realiza login do usuário
+ *     description: >-
+ *       Retorna um JWT válido por 8 horas. Use-o no header
+ *       "Authorization: Bearer <token>".
  *     tags: [Autenticação]
  *     requestBody:
  *       required: true
@@ -19,15 +24,15 @@ const router = express.Router();
  *             type: object
  *             required:
  *               - email
- *               - senha
+ *               - password
  *             properties:
  *               email:
  *                 type: string
  *                 format: email
- *                 example: usuario@exemplo.com
- *               senha:
+ *                 example: joao@exemplo.com
+ *               password:
  *                 type: string
- *                 example: senha123
+ *                 example: senhaSegura123
  *     responses:
  *       200:
  *         description: Login realizado com sucesso
@@ -36,28 +41,44 @@ const router = express.Router();
  *             schema:
  *               type: object
  *               properties:
+ *                 message:
+ *                   type: string
  *                 token:
  *                   type: string
  *                 user:
  *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     username:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                       enum: [usuario, analista, admin]
  *       401:
  *         description: Credenciais inválidas
  */
-router.post('/login', loginLimiter, login);
+router.post('/login', loginLimiter, validate(loginSchema), login);
 
 /**
  * @swagger
  * /auth/logout:
  *   post:
- *     summary: Realiza logout do usuário
+ *     summary: Realiza logout com revogação do token no servidor
+ *     description: >
+ *       Registra o JWT atual como revogado (por hash SHA-256) até a expiração
+ *       original dele. Requests subsequentes com este token recebem 401,
+ *       mesmo antes de o token expirar naturalmente.
  *     tags: [Autenticação]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Logout realizado com sucesso
+ *         description: Logout realizado e token revogado no servidor
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, já revogado ou não fornecido
  */
 router.post('/logout', verifyToken, logout);
 

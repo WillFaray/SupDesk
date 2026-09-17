@@ -1,9 +1,9 @@
 import express from 'express';
-import { CreateUser, listUsers, updateUser } from '../controllers/UserController.js';
+import { CreateUser, getMe, listUsers, updateUser } from '../controllers/UserController.js';
 import { validate } from '../middlewares/validateMiddleware.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { requireRole, verifyToken } from '../middlewares/authMiddleware.js';
 import { registerLimiter } from '../middlewares/rateLimitMiddleware.js';
-import { userSchema } from '../schemas/userSchema.js';
+import { registerSchema, updateUserSchema } from '../schemas/userSchema.js';
 
 const router = express.Router();
 
@@ -11,7 +11,11 @@ const router = express.Router();
  * @swagger
  * /usuarios:
  *   post:
- *     summary: Cria um novo usuário
+ *     summary: Cadastro público de usuário
+ *     description: >
+ *       Cria um novo usuário com papel fixo 'usuario'.
+ *       O campo `role` NÃO é aceito no body — tentativas de elevar privilégio
+ *       são descartadas pelo validador (chaves desconhecidas são removidas).
  *     tags: [Usuários]
  *     requestBody:
  *       required: true
@@ -20,41 +24,95 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - nome
+ *               - username
  *               - email
- *               - senha
+ *               - password_hash
  *             properties:
- *               nome:
+ *               username:
  *                 type: string
- *                 example: João Silva
+ *                 minLength: 3
+ *                 maxLength: 20
+ *                 example: joao.silva
  *               email:
  *                 type: string
  *                 format: email
  *                 example: joao@exemplo.com
- *               senha:
+ *               password_hash:
  *                 type: string
- *                 example: senha123
+ *                 minLength: 8
+ *                 example: senhaSegura123
  *     responses:
  *       201:
- *         description: Usuário criado com sucesso
+ *         description: Usuário criado com sucesso (nunca retorna o hash da senha)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                   enum: [usuario]
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
  *       400:
  *         description: Dados inválidos
  *       409:
  *         description: Email já cadastrado
  */
-router.post('/', registerLimiter, validate(userSchema), CreateUser);
+router.post('/', registerLimiter, validate(registerSchema), CreateUser);
 
 /**
  * @swagger
- * /usuarios:
+ * /usuarios/me:
  *   get:
- *     summary: Lista todos os usuários
+ *     summary: Dados do próprio usuário autenticado
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuários
+ *         description: Dados do usuário autenticado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 username:
+ *                   type: string
+ *                 email:
+ *                   type: string
+ *                 role:
+ *                   type: string
+ *                   enum: [usuario, analista, admin]
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *       401:
+ *         description: Token inválido, revogado ou não fornecido
+ */
+router.get('/me', verifyToken, getMe);
+
+/**
+ * @swagger
+ * /usuarios:
+ *   get:
+ *     summary: Lista todos os usuários (somente admin)
+ *     description: Requer papel 'admin'. Usuários comuns recebem 403.
+ *     tags: [Usuários]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuários (sem hashes de senha)
  *         content:
  *           application/json:
  *             schema:
@@ -64,20 +122,31 @@ router.post('/', registerLimiter, validate(userSchema), CreateUser);
  *                 properties:
  *                   id:
  *                     type: integer
- *                   nome:
+ *                   username:
  *                     type: string
  *                   email:
  *                     type: string
+ *                   role:
+ *                     type: string
+ *                     enum: [usuario, analista, admin]
+ *                   created_at:
+ *                     type: string
+ *                     format: date-time
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
+ *       403:
+ *         description: Acesso negado (requer papel admin)
  */
-router.get('/', verifyToken, listUsers);
+router.get('/', verifyToken, requireRole('admin'), listUsers);
 
 /**
  * @swagger
  * /usuarios:
  *   put:
- *     summary: Atualiza dados do usuário
+ *     summary: Atualiza o perfil do usuário autenticado
+ *     description: >
+ *       Autoatendimento: afeta apenas o próprio usuário do token.
+ *       Aceita username, email e/ou password_hash (a senha é re-hasheada).
  *     tags: [Usuários]
  *     security:
  *       - bearerAuth: []
@@ -87,22 +156,27 @@ router.get('/', verifyToken, listUsers);
  *         application/json:
  *           schema:
  *             type: object
+ *             minProperties: 1
  *             properties:
- *               nome:
+ *               username:
  *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 20
  *               email:
  *                 type: string
  *                 format: email
- *               senha:
+ *               password_hash:
  *                 type: string
+ *                 minLength: 8
+ *                 example: novaSenhaSegura123
  *     responses:
  *       200:
  *         description: Usuário atualizado com sucesso
  *       400:
- *         description: Dados inválidos
+ *         description: Dados inválidos ou nenhum campo informado
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
  */
-router.put('/', verifyToken, updateUser);
+router.put('/', verifyToken, validate(updateUserSchema), updateUser);
 
 export default router;

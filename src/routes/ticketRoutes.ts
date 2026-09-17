@@ -8,7 +8,7 @@ import {
     adicionarComentario,
     listarComentarios,
 } from '../controllers/TicketController.js';
-import { verifyToken } from '../middlewares/authMiddleware.js';
+import { verifyToken, requireRole } from '../middlewares/authMiddleware.js';
 import { validate } from '../middlewares/validateMiddleware.js';
 import {
     createTicketSchema,
@@ -33,26 +33,36 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             required:
- *               - titulo
- *               - descricao
+ *               - title
+ *               - description
+ *               - priority
+ *               - category
  *             properties:
- *               titulo:
+ *               title:
  *                 type: string
+ *                 minLength: 3
+ *                 maxLength: 100
  *                 example: Problema no sistema
- *               descricao:
+ *               description:
  *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 1000
  *                 example: Descrição detalhada do problema
- *               prioridade:
+ *               priority:
  *                 type: string
- *                 enum: [baixa, media, alta]
- *                 example: media
+ *                 enum: [Baixa, Média, Alta]
+ *                 example: Média
+ *               category:
+ *                 type: string
+ *                 enum: [Hardware, Software, Rede, Outros]
+ *                 example: Software
  *     responses:
  *       201:
  *         description: Chamado criado com sucesso
  *       400:
  *         description: Dados inválidos
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
  */
 router.post('/', verifyToken, validate(createTicketSchema), CreateTicket);
 
@@ -100,7 +110,7 @@ router.get('/:id', verifyToken, getTicket);
  * @swagger
  * /chamados/{id}:
  *   patch:
- *     summary: Atualiza o status de um chamado
+ *     summary: Atualiza o status de um chamado (somente admin ou analista)
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
@@ -116,27 +126,38 @@ router.get('/:id', verifyToken, getTicket);
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - status
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [aberto, em_andamento, resolvido, fechado]
+ *                 enum: [Aberto, Em andamento, Resolvido]
+ *                 example: Em andamento
  *     responses:
  *       200:
  *         description: Status atualizado com sucesso
  *       400:
  *         description: Dados inválidos
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
+ *       403:
+ *         description: Acesso negado (requer papel admin ou analista)
  *       404:
  *         description: Chamado não encontrado
  */
-router.patch('/:id', verifyToken, validate(updateTicketStatusSchema), updateTicket);
+router.patch(
+    '/:id',
+    verifyToken,
+    requireRole('admin', 'analista'),
+    validate(updateTicketStatusSchema),
+    updateTicket,
+);
 
 /**
  * @swagger
  * /chamados/{id}:
  *   delete:
- *     summary: Remove um chamado
+ *     summary: Remove um chamado (somente admin ou analista)
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
@@ -150,11 +171,13 @@ router.patch('/:id', verifyToken, validate(updateTicketStatusSchema), updateTick
  *       200:
  *         description: Chamado removido com sucesso
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
+ *       403:
+ *         description: Acesso negado (requer papel admin ou analista)
  *       404:
  *         description: Chamado não encontrado
  */
-router.delete('/:id', verifyToken, deleteTicket);
+router.delete('/:id', verifyToken, requireRole('admin', 'analista'), deleteTicket);
 
 /**
  * @swagger
@@ -177,17 +200,20 @@ router.delete('/:id', verifyToken, deleteTicket);
  *           schema:
  *             type: object
  *             required:
- *               - texto
+ *               - message
  *             properties:
- *               texto:
+ *               message:
  *                 type: string
+ *                 minLength: 1
+ *                 maxLength: 500
+ *                 example: Já reiniciei o computador e o problema persiste.
  *     responses:
  *       201:
  *         description: Comentário adicionado com sucesso
  *       400:
  *         description: Dados inválidos
  *       401:
- *         description: Token inválido ou não fornecido
+ *         description: Token inválido, revogado ou não fornecido
  *       404:
  *         description: Chamado não encontrado
  */
