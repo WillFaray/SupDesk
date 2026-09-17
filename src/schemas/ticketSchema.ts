@@ -25,3 +25,7 @@ export const createCommentSchema = z.object({
         .min(1, 'Comentário não pode ser vazio')
         .max(500, 'Comentário deve ter no máximo 500 caracteres'),
 });
+
+export type CreateTicketDTO = z.infer<typeof createTicketSchema>;
+export type UpdateTicketStatusDTO = z.infer<typeof updateTicketStatusSchema>;
+export type CreateCommentDTO = z.infer<typeof createCommentSchema>;
