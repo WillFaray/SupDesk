@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
+import { api } from '../lib/api';
 import { Icon } from './Icon';
 import { SearchBox } from './SearchBox';
 import { useToast } from './Toast';
@@ -49,6 +50,8 @@ export function Masthead() {
           <button
             className="btn btn--fantasma"
             onClick={() => {
+              // Revoga o JWT no servidor (best-effort) e limpa a sessão local.
+              void api.logout().catch(() => undefined);
               sair();
               toast.info('Sessão encerrada.');
               navigate('/login');
