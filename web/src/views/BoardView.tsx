@@ -37,8 +37,7 @@ export function BoardView() {
         .then((cs) => {
           if (vivo) setChats((prev) => ({ ...prev, [c.id]: cs }));
         })
-        .catch(() => {
-        });
+        .catch(() => {});
     }
     return () => {
       vivo = false;

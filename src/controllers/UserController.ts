@@ -5,7 +5,6 @@ import type { AuthRequest } from '../middlewares/authMiddleware.js';
 import type { RegisterDTO, UpdateUserDTO } from '../schemas/userSchema.js';
 import type { UserPublicRow, UserSafeRow } from '../types/db.js';
 
-
 export const CreateUser = async (
     req: AuthRequest<RegisterDTO>,
     res: express.Response,
