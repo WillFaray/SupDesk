@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import { Navigate } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { RouteErrorBoundary } from './components/ErrorBoundary';
+import { RoleGuard } from './components/RoleGuard';
 import { LoginView } from './views/LoginView';
 import { QueueView } from './views/QueueView';
 import { BoardView } from './views/BoardView';
@@ -57,7 +58,9 @@ export function App() {
           path="/usuarios"
           element={
             <RouteErrorBoundary>
-              <UsersView />
+              <RoleGuard papel="admin">
+                <UsersView />
+              </RoleGuard>
             </RouteErrorBoundary>
           }
         />
