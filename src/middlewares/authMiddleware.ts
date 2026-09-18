@@ -1,6 +1,7 @@
 import type express from 'express';
 import jwt from 'jsonwebtoken';
-import { isTokenRevoked } from '../tokenRevocation.js';
+import { consultarSessao } from '../authSession.js';
+import type { EstadoSessao } from '../authSession.js';
 import type { JwtClaims } from '../types/db.js';
 
 export interface AuthRequest<TBody = unknown> extends express.Request {
@@ -56,20 +57,28 @@ export const verifyToken = async (
         return;
     }
 
-    let revoked: boolean;
+    // A assinatura prova que o token é nosso; o banco diz se a sessão e o
+    // PAPEL ainda valem agora (conta removida, logout ou papel alterado).
+    let estado: EstadoSessao;
     try {
-        revoked = await isTokenRevoked(token);
+        estado = await consultarSessao(claims.id, token);
     } catch (error) {
         next(error);
         return;
     }
 
-    if (revoked) {
+    if (estado.situacao === 'inexistente') {
+        res.status(401).json({ error: 'Usuário não encontrado. Faça login novamente.' });
+        return;
+    }
+
+    if (estado.situacao === 'revogada') {
         res.status(401).json({ error: 'Token revogado. Faça login novamente.' });
         return;
     }
 
-    req.user = claims;
+    // O papel efetivo é o do banco — nunca o que ficou congelado no token.
+    req.user = { ...claims, role: estado.role };
     next();
 };
 
