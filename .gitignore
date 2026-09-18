@@ -15,6 +15,10 @@ npm-debug.log*
 dist/
 build/
 
+# Cobertura de testes
+coverage/
+web/coverage/
+
 .env
 .env.local
 

@@ -1,0 +1,13 @@
+{
+    // Configuração para os arquivos de TESTE do backend (tests/**) e o
+    // vitest.config.ts. Estende o tsconfig raiz, mas emite nada (noEmit) e
+    // enraiza na raiz do repo para alcançar tanto src/ quanto tests/.
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "rootDir": ".",
+        "declaration": false,
+        "declarationMap": false
+    },
+    "include": ["src", "tests", "vitest.config.ts"]
+}

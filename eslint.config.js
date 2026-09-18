@@ -89,6 +89,30 @@ export default tseslint.config(
         },
     },
     {
+        name: 'supdesk/backend-tests',
+        // Suíte do backend: type-aware via tsconfig.test.json (alcança src/ e
+        // tests/). O corpo das respostas HTTP chega como `any` do Supertest —
+        // as regras de unsafety ficam relaxadas aqui para evitar spam de casts.
+        files: ['tests/**/*.ts', 'vitest.config.ts'],
+        extends: [...tseslint.configs.recommendedTypeChecked],
+        languageOptions: {
+            parserOptions: {
+                project: './tsconfig.test.json',
+                tsconfigRootDir: import.meta.dirname,
+            },
+            globals: { ...globals.node },
+        },
+        rules: {
+            '@typescript-eslint/no-unsafe-assignment': 'off',
+            '@typescript-eslint/no-unsafe-member-access': 'off',
+            '@typescript-eslint/no-unsafe-argument': 'off',
+            '@typescript-eslint/no-unsafe-return': 'off',
+            '@typescript-eslint/no-unsafe-call': 'off',
+            'no-console': 'off',
+        },
+    },
+
+    {
         // Bootstrap do servidor: banners de inicialização usam console.log de propósito.
         name: 'supdesk/backend-bootstrap',
         files: ['src/server.ts', 'src/swagger.ts'],
@@ -146,7 +170,7 @@ export default tseslint.config(
      * ------------------------------------------------------------------ */
     {
         name: 'supdesk/tooling',
-        files: ['*.{js,mjs,cjs}', 'web/*.{ts,js,mjs,cjs}'],
+        files: ['*.{js,mjs,cjs}', '*.ts', 'web/*.{ts,js,mjs,cjs}'],
         languageOptions: {
             globals: { ...globals.node },
         },
