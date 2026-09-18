@@ -62,6 +62,7 @@ export function ThreadComentarios({
     setComentarioOtimista(otimista);
     setErroOtimista(null);
     setMsg('');
+    setEnviando(true);
 
     try {
       await comentarChamado(id, otimista.message);
