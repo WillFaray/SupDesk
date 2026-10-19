@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
+import type express from 'express';
 import { z } from 'zod';
-import { validate } from '../../src/middlewares/validateMiddleware.js';
+import {
+    parsePositiveIntId,
+    validate,
+    validateIdParam,
+} from '../../src/middlewares/validateMiddleware.js';
 import type { AuthRequest } from '../../src/middlewares/authMiddleware.js';
 import { registerSchema } from '../../src/schemas/userSchema.js';
 import type { RegisterDTO } from '../../src/schemas/userSchema.js';
@@ -69,5 +74,48 @@ describe('validate', () => {
         expect(statuses).toEqual([]);
         expect(next).toHaveBeenCalledOnce();
         expect(req.body).not.toHaveProperty('role');
+    });
+});
+
+describe('parsePositiveIntId e validateIdParam', () => {
+    it('aceita inteiros positivos dentro do limite de INT4 do PostgreSQL', () => {
+        expect(parsePositiveIntId('1')).toBe(1);
+        expect(parsePositiveIntId('42')).toBe(42);
+        expect(parsePositiveIntId('2147483647')).toBe(2147483647);
+    });
+
+    it('rejeita zero, negativos, decimais, alfanuméricos e overflow de INT4', () => {
+        expect(parsePositiveIntId('')).toBeNull();
+        expect(parsePositiveIntId('0')).toBeNull();
+        expect(parsePositiveIntId('01')).toBeNull();
+        expect(parsePositiveIntId('-5')).toBeNull();
+        expect(parsePositiveIntId('1.5')).toBeNull();
+        expect(parsePositiveIntId('abc')).toBeNull();
+        expect(parsePositiveIntId('12abc')).toBeNull();
+        expect(parsePositiveIntId('2147483648')).toBeNull();
+        expect(parsePositiveIntId(undefined)).toBeNull();
+    });
+
+    it('validateIdParam responde 400 antes do controller quando :id é inválido', () => {
+        const { res, statuses, corpos } = resFalsa();
+        const next = vi.fn();
+        const req = { params: { id: 'abc' } } as unknown as express.Request;
+
+        validateIdParam(req, res, next);
+
+        expect(statuses).toEqual([400]);
+        expect(corpos[0]).toEqual({ error: 'Identificador inválido' });
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('validateIdParam chama next quando :id é válido', () => {
+        const { res, statuses } = resFalsa();
+        const next = vi.fn();
+        const req = { params: { id: '15' } } as unknown as express.Request;
+
+        validateIdParam(req, res, next);
+
+        expect(statuses).toEqual([]);
+        expect(next).toHaveBeenCalledOnce();
     });
 });

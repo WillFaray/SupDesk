@@ -57,8 +57,24 @@ const router = express.Router();
  *                     role:
  *                       type: string
  *                       enum: [usuario, analista, admin]
+ *       400:
+ *         description: Dados inválidos ou JSON malformado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Credenciais inválidas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Muitas tentativas de login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/login', loginLimiter, validate(loginSchema), login);
 
@@ -79,6 +95,10 @@ router.post('/login', loginLimiter, validate(loginSchema), login);
  *         description: Logout realizado e token revogado no servidor
  *       401:
  *         description: Token inválido, já revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/logout', verifyToken, logout);
 

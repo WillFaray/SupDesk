@@ -87,7 +87,7 @@ describe('POST /usuarios (cadastro público)', () => {
         expect(campos).toEqual(expect.arrayContaining(['username', 'email', 'password_hash']));
     });
 
-    it('não permite e-mail duplicado (comportamento atual: 500 — o Swagger promete 409)', async () => {
+    it('rejeita e-mail duplicado com 409 Conflict padronizado', async () => {
         await agente.post('/usuarios').send({
             username: 'primeiro',
             email: 'dup@empresa.com',
@@ -99,9 +99,20 @@ describe('POST /usuarios (cadastro público)', () => {
             password_hash: 'SenhaForte123',
         });
 
-        // Violação de UNIQUE cai no errorHandler genérico; dívida registrada.
-        expect(resposta.status).toBe(500);
-        expect((resposta.body as { status: string }).status).toBe('error');
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({ error: 'Email já cadastrado.' });
+    });
+
+    it('rejeita payload com JSON malformado com 400 padronizado', async () => {
+        const resposta = await agente
+            .post('/usuarios')
+            .set('Content-Type', 'application/json')
+            .send('{ "username": "incompleto" ');
+
+        expect(resposta.status).toBe(400);
+        expect(resposta.body).toEqual({
+            error: 'JSON malformado no corpo da requisição.',
+        });
     });
 });
 
@@ -246,6 +257,16 @@ describe('PUT /usuarios (autoatendimento)', () => {
     it('rejeita body vazio (400)', async () => {
         const resposta = await agente.put('/usuarios').set(bearer(tokenUsuario)).send({});
         expect(resposta.status).toBe(400);
+    });
+
+    it('retorna 409 ao tentar atualizar para e-mail já usado por outro usuário', async () => {
+        const resposta = await agente
+            .put('/usuarios')
+            .set(bearer(tokenUsuario))
+            .send({ email: ADMIN.email });
+
+        expect(resposta.status).toBe(409);
+        expect(resposta.body).toEqual({ error: 'Email já cadastrado.' });
     });
 
     it('exige token (401)', async () => {

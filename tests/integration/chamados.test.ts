@@ -263,10 +263,12 @@ describe('GET /chamados/:id (detalhe)', () => {
         expect(resposta.status).toBe(404);
     });
 
-    it('id não numérico vira 500 (comportamento atual: o SQL rejeita texto)', async () => {
-        // Dívida conhecida: '/chamados/abc' poderia responder 400/404.
-        const resposta = await agente.get('/chamados/abc').set(bearer(tokenAlice));
-        expect(resposta.status).toBe(500);
+    it('rejeita id inválido (não numérico, zero, negativo ou overflow) com 400 antes do SQL', async () => {
+        for (const idInvalido of ['abc', '0', '-1', '12abc', '999999999999']) {
+            const resposta = await agente.get(`/chamados/${idInvalido}`).set(bearer(tokenAlice));
+            expect(resposta.status).toBe(400);
+            expect(resposta.body).toEqual({ error: 'Identificador inválido' });
+        }
     });
 });
 
@@ -321,6 +323,15 @@ describe('PATCH /chamados/:id (status)', () => {
             .send({ status: 'Resolvido' });
         expect(resposta.status).toBe(404);
     });
+
+    it('400 para id inválido antes de validar ou consultar o banco', async () => {
+        const resposta = await agente
+            .patch('/chamados/abc')
+            .set(bearer(tokenAna))
+            .send({ status: 'Resolvido' });
+        expect(resposta.status).toBe(400);
+        expect(resposta.body).toEqual({ error: 'Identificador inválido' });
+    });
 });
 
 describe('DELETE /chamados/:id', () => {
@@ -349,6 +360,12 @@ describe('DELETE /chamados/:id', () => {
     it('404 para chamado inexistente', async () => {
         const resposta = await agente.delete('/chamados/99999').set(bearer(tokenAdm));
         expect(resposta.status).toBe(404);
+    });
+
+    it('400 para id inválido', async () => {
+        const resposta = await agente.delete('/chamados/abc').set(bearer(tokenAdm));
+        expect(resposta.status).toBe(400);
+        expect(resposta.body).toEqual({ error: 'Identificador inválido' });
     });
 });
 
@@ -405,6 +422,19 @@ describe('comentários (/chamados/:id/comentarios)', () => {
             .set(bearer(tokenAlice))
             .send({ message: 'Alguém aí?' });
         expect(resposta.status).toBe(404);
+    });
+
+    it('400 para id inválido ao listar ou criar comentário', async () => {
+        const postInvalido = await agente
+            .post('/chamados/abc/comentarios')
+            .set(bearer(tokenAlice))
+            .send({ message: 'Teste' });
+        expect(postInvalido.status).toBe(400);
+        expect(postInvalido.body).toEqual({ error: 'Identificador inválido' });
+
+        const getInvalido = await agente.get('/chamados/abc/comentarios').set(bearer(tokenAlice));
+        expect(getInvalido.status).toBe(400);
+        expect(getInvalido.body).toEqual({ error: 'Identificador inválido' });
     });
 
     it('exige token (401)', async () => {

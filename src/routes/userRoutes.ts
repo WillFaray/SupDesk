@@ -62,9 +62,23 @@ const router = express.Router();
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Dados inválidos
+ *         description: Dados inválidos ou JSON malformado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       409:
  *         description: Email já cadastrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       429:
+ *         description: Limite de criações por hora excedido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', registerLimiter, validate(registerSchema), CreateUser);
 
@@ -98,6 +112,10 @@ router.post('/', registerLimiter, validate(registerSchema), CreateUser);
  *                   format: date-time
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/me', verifyToken, getMe);
 
@@ -134,8 +152,16 @@ router.get('/me', verifyToken, getMe);
  *                     format: date-time
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Acesso negado (requer papel admin)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/', verifyToken, requireRole('admin'), listUsers);
 
@@ -174,8 +200,22 @@ router.get('/', verifyToken, requireRole('admin'), listUsers);
  *         description: Usuário atualizado com sucesso
  *       400:
  *         description: Dados inválidos ou nenhum campo informado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Email já cadastrado por outro usuário
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.put('/', verifyToken, validate(updateUserSchema), updateUser);
 

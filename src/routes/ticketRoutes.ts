@@ -9,7 +9,7 @@ import {
     listarComentarios,
 } from '../controllers/TicketController.js';
 import { verifyToken, requireRole } from '../middlewares/authMiddleware.js';
-import { validate } from '../middlewares/validateMiddleware.js';
+import { validate, validateIdParam } from '../middlewares/validateMiddleware.js';
 import {
     createTicketSchema,
     updateTicketStatusSchema,
@@ -60,9 +60,17 @@ const router = express.Router();
  *       201:
  *         description: Chamado criado com sucesso
  *       400:
- *         description: Dados inválidos
+ *         description: Dados inválidos ou JSON malformado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ValidationErrorResponse'
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/', verifyToken, validate(createTicketSchema), CreateTicket);
 
@@ -79,6 +87,10 @@ router.post('/', verifyToken, validate(createTicketSchema), CreateTicket);
  *         description: Lista de chamados
  *       401:
  *         description: Token inválido ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/', verifyToken, listTickets);
 
@@ -96,15 +108,30 @@ router.get('/', verifyToken, listTickets);
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
  *     responses:
  *       200:
  *         description: Dados do chamado
+ *       400:
+ *         description: Identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Token inválido ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id', verifyToken, getTicket);
+router.get('/:id', verifyToken, validateIdParam, getTicket);
 
 /**
  * @swagger
@@ -120,6 +147,7 @@ router.get('/:id', verifyToken, getTicket);
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
  *     requestBody:
  *       required: true
  *       content:
@@ -137,18 +165,37 @@ router.get('/:id', verifyToken, getTicket);
  *       200:
  *         description: Status atualizado com sucesso
  *       400:
- *         description: Dados inválidos
+ *         description: Dados inválidos ou identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/ValidationErrorResponse'
+ *                 - $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Acesso negado (requer papel admin ou analista)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.patch(
     '/:id',
     verifyToken,
     requireRole('admin', 'analista'),
+    validateIdParam,
     validate(updateTicketStatusSchema),
     updateTicket,
 );
@@ -167,17 +214,36 @@ router.patch(
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
  *     responses:
  *       200:
  *         description: Chamado removido com sucesso
+ *       400:
+ *         description: Identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
  *         description: Acesso negado (requer papel admin ou analista)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', verifyToken, requireRole('admin', 'analista'), deleteTicket);
+router.delete('/:id', verifyToken, requireRole('admin', 'analista'), validateIdParam, deleteTicket);
 
 /**
  * @swagger
@@ -193,6 +259,7 @@ router.delete('/:id', verifyToken, requireRole('admin', 'analista'), deleteTicke
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
  *     requestBody:
  *       required: true
  *       content:
@@ -211,13 +278,33 @@ router.delete('/:id', verifyToken, requireRole('admin', 'analista'), deleteTicke
  *       201:
  *         description: Comentário adicionado com sucesso
  *       400:
- *         description: Dados inválidos
+ *         description: Dados inválidos ou identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               oneOf:
+ *                 - $ref: '#/components/schemas/ValidationErrorResponse'
+ *                 - $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Token inválido, revogado ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post('/:id/comentarios', verifyToken, validate(createCommentSchema), adicionarComentario);
+router.post(
+    '/:id/comentarios',
+    verifyToken,
+    validateIdParam,
+    validate(createCommentSchema),
+    adicionarComentario,
+);
 
 /**
  * @swagger
@@ -233,14 +320,29 @@ router.post('/:id/comentarios', verifyToken, validate(createCommentSchema), adic
  *         required: true
  *         schema:
  *           type: integer
+ *           minimum: 1
  *     responses:
  *       200:
  *         description: Lista de comentários
+ *       400:
+ *         description: Identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Token inválido ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.get('/:id/comentarios', verifyToken, listarComentarios);
+router.get('/:id/comentarios', verifyToken, validateIdParam, listarComentarios);
 
 export default router;

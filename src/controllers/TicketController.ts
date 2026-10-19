@@ -1,6 +1,7 @@
 import type express from 'express';
 import pool from '../database.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
+import { parsePositiveIntId } from '../middlewares/validateMiddleware.js';
 import type {
     CreateCommentDTO,
     CreateTicketDTO,
@@ -17,8 +18,7 @@ import type {
 const queryStr = (value: unknown): string | undefined =>
     typeof value === 'string' && value.length > 0 ? value : undefined;
 
-const paramId = (value: unknown): string | undefined =>
-    typeof value === 'string' && value.length > 0 ? value : undefined;
+const paramId = (value: unknown): number | undefined => parsePositiveIntId(value) ?? undefined;
 
 export const CreateTicket = async (
     req: AuthRequest<CreateTicketDTO>,
