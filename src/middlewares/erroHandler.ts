@@ -14,6 +14,22 @@ interface BodyParserLikeError extends Error {
     type?: string;
 }
 
+const SENSITIVE_PATTERNS: RegExp[] = [
+    /(Bearer\s+)[A-Za-z0-9\-._~+/]+=*/gi,
+    /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,
+    /((?:password|password_hash|senha|token|secret|authorization)\s*[=:]\s*)([^\s,&"']+)/gi,
+    /(["'](?:password|password_hash|senha|token|secret|authorization)["']\s*:\s*["'])([^"']+)(["'])/gi,
+];
+
+export const sanitizeForLog = (input: string): string => {
+    let sanitized = input;
+    sanitized = sanitized.replace(SENSITIVE_PATTERNS[0]!, '$1[REDACTED]');
+    sanitized = sanitized.replace(SENSITIVE_PATTERNS[1]!, '[REDACTED_JWT]');
+    sanitized = sanitized.replace(SENSITIVE_PATTERNS[2]!, '$1[REDACTED]');
+    sanitized = sanitized.replace(SENSITIVE_PATTERNS[3]!, '$1[REDACTED]$3');
+    return sanitized;
+};
+
 const isMalformedJsonError = (err: unknown): boolean => {
     if (!(err instanceof SyntaxError)) return false;
     const bodyErr = err as BodyParserLikeError;
@@ -124,7 +140,10 @@ export const errorHandler = (
         });
     }
 
-    console.error(`[Erro Crítico] ${req.method} ${req.url} ->`, err.message);
+    const safeUrl = sanitizeForLog(req.url ?? '');
+    const safeMessage = sanitizeForLog(err.message ?? 'Erro desconhecido');
+    console.error(`[Erro Crítico] ${req.method} ${safeUrl} ->`, safeMessage);
+
     return res.status(500).json({
         error: 'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.',
     });

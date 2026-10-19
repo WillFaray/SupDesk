@@ -204,7 +204,7 @@ router.patch(
  * @swagger
  * /chamados/{id}:
  *   delete:
- *     summary: Remove um chamado (somente admin ou analista)
+ *     summary: Remove um chamado (somente admin)
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
@@ -231,7 +231,7 @@ router.patch(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  *       403:
- *         description: Acesso negado (requer papel admin ou analista)
+ *         description: Acesso negado (requer papel admin)
  *         content:
  *           application/json:
  *             schema:
@@ -243,7 +243,7 @@ router.patch(
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.delete('/:id', verifyToken, requireRole('admin', 'analista'), validateIdParam, deleteTicket);
+router.delete('/:id', verifyToken, requireRole('admin'), validateIdParam, deleteTicket);
 
 /**
  * @swagger

@@ -29,16 +29,29 @@ afterAll(async () => {
     await pool.end();
 });
 
-describe('GET /ping', () => {
-    it('responde 200', async () => {
+describe('GET /ping e headers de segurança', () => {
+    it('responde 200 com headers de segurança e sem expor X-Powered-By', async () => {
         const resposta = await agente.get('/ping');
         expect(resposta.status).toBe(200);
+        expect(resposta.headers['x-powered-by']).toBeUndefined();
+        expect(resposta.headers['x-content-type-options']).toBe('nosniff');
+        expect(resposta.headers['x-frame-options']).toBe('DENY');
+        expect(resposta.headers['referrer-policy']).toBe('no-referrer');
+    });
+
+    it('bloqueia origem não autorizada no CORS', async () => {
+        const resposta = await agente
+            .get('/ping')
+            .set('Origin', 'https://origem-maliciosa.exemplo.com');
+        expect(resposta.headers['access-control-allow-origin']).toBeUndefined();
     });
 });
 
 describe('POST /auth/login', () => {
-    it('retorna token e dados públicos do usuário', async () => {
-        const resposta = await agente.post('/auth/login').send({ email: EMAIL, password: SENHA });
+    it('retorna token e dados públicos do usuário (inclusive com email em maiúsculas)', async () => {
+        const resposta = await agente
+            .post('/auth/login')
+            .send({ email: '  MARIA@EMPRESA.COM ', password: SENHA });
 
         expect(resposta.status).toBe(200);
         const corpo = resposta.body as {

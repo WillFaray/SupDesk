@@ -6,9 +6,14 @@ export const hashToken = (token: string): string =>
     crypto.createHash('sha256').update(token).digest('hex');
 
 export const revokeToken = async (token: string, expiresAtSeconds: number): Promise<void> => {
-    await pool.query('DELETE FROM revoked_tokens WHERE expires_at < NOW()');
+    await pool.query('DELETE FROM revoked_tokens WHERE expires_at <= NOW()');
+
+    if (!Number.isFinite(expiresAtSeconds) || expiresAtSeconds <= Math.floor(Date.now() / 1000)) {
+        return;
+    }
+
     await pool.query(
-        'INSERT INTO revoked_tokens (token_hash, expires_at) VALUES ($1, to_timestamp($2))',
+        'INSERT INTO revoked_tokens (token_hash, expires_at) VALUES ($1, to_timestamp($2)) ON CONFLICT (token_hash) DO NOTHING',
         [hashToken(token), expiresAtSeconds],
     );
 };

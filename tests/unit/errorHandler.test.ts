@@ -111,4 +111,27 @@ describe('errorHandler', () => {
             error: 'Identificador inválido',
         });
     });
+
+    it('mascara senhas, Bearer tokens e JWTs nos logs de erro crítico', () => {
+        const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const { res } = resFalsa();
+        const req = {
+            method: 'POST',
+            url: '/auth/login?token=segredo123&password=MinhaSenhaSecreta',
+        } as express.Request;
+        const erroComSegredo = new Error(
+            'Falha ao validar Bearer tok_abc123 e password_hash=HashSecreto999 e eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MX0.assinatura',
+        );
+
+        errorHandler(erroComSegredo, req, res, vi.fn());
+
+        expect(spyConsole).toHaveBeenCalledOnce();
+        const logCompleto = JSON.stringify(spyConsole.mock.calls[0]);
+        expect(logCompleto).not.toContain('segredo123');
+        expect(logCompleto).not.toContain('MinhaSenhaSecreta');
+        expect(logCompleto).not.toContain('tok_abc123');
+        expect(logCompleto).not.toContain('HashSecreto999');
+        expect(logCompleto).not.toContain('eyJhbGciOiJIUzI1NiJ9');
+        expect(logCompleto).toContain('[REDACTED]');
+    });
 });

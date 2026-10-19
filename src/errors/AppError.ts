@@ -5,12 +5,12 @@ export interface ValidationErrorDetail {
 
 export interface ErrorResponseBody {
     error: string;
-    detalhes?: ValidationErrorDetail[];
+    detalhes?: ValidationErrorDetail[] | undefined;
 }
 
 export class AppError extends Error {
     public readonly statusCode: number;
-    public readonly detalhes?: ValidationErrorDetail[];
+    public readonly detalhes?: ValidationErrorDetail[] | undefined;
 
     constructor(statusCode: number, message: string, detalhes?: ValidationErrorDetail[]) {
         super(message);

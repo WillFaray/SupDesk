@@ -37,6 +37,7 @@ export const login = async (
         };
 
         const token = jwt.sign(claims, process.env.JWT_SECRET as string, {
+            algorithm: 'HS256',
             expiresIn: '8h',
         });
 
@@ -56,7 +57,7 @@ export const logout = async (
     next: express.NextFunction,
 ): Promise<void> => {
     try {
-        const token = req.headers['authorization']?.split(' ')[1];
+        const token = req.headers['authorization']?.trim().split(' ')[1];
         const claims = req.user;
 
         if (!token || !claims) {

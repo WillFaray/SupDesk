@@ -122,10 +122,29 @@ describe('verifyToken', () => {
         expect(sessao).not.toHaveBeenCalled();
     });
 
-    it('rejeita token com id não numérico sem consultar o banco', async () => {
+    it('rejeita token com id não numérico, zero, negativo ou decimal sem consultar o banco', async () => {
+        for (const idInvalido of ['7', 0, -5, 1.5]) {
+            const { res, statuses, next } = sucesso();
+            const token = assinar({ id: idInvalido, role: 'admin' }, { expiresIn: '1h' });
+            await verifyToken(reqComToken(token), res, next);
+            expect(statuses).toEqual([401]);
+            expect(next).not.toHaveBeenCalled();
+            expect(sessao).not.toHaveBeenCalled();
+        }
+    });
+
+    it('rejeita token assinado com algoritmo diferente de HS256', async () => {
         const { res, statuses, next } = sucesso();
-        const token = assinar({ id: '7', role: 'admin' }, { expiresIn: '1h' });
+        const token = assinar({ id: 7, role: 'admin' }, { algorithm: 'HS384', expiresIn: '1h' });
         await verifyToken(reqComToken(token), res, next);
+        expect(statuses).toEqual([401]);
+        expect(next).not.toHaveBeenCalled();
+        expect(sessao).not.toHaveBeenCalled();
+    });
+
+    it('rejeita token acima do tamanho máximo permitido (proteção contra DoS)', async () => {
+        const { res, statuses, next } = sucesso();
+        await verifyToken(reqComToken('a'.repeat(2049)), res, next);
         expect(statuses).toEqual([401]);
         expect(next).not.toHaveBeenCalled();
         expect(sessao).not.toHaveBeenCalled();

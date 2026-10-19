@@ -345,10 +345,11 @@ describe('DELETE /chamados/:id', () => {
         expect(depois.status).toBe(404);
     });
 
-    it('analista também pode excluir', async () => {
+    it('analista recebe 403 (exclusão restrita a admin)', async () => {
         const criado = await criarChamadoDireto({ user_id: alice.id, title: 'Excluir-Ana' });
         const resposta = await agente.delete(`/chamados/${criado.id}`).set(bearer(tokenAna));
-        expect(resposta.status).toBe(200);
+        expect(resposta.status).toBe(403);
+        expect((resposta.body as { error: string }).error).toContain('Requer papel: admin');
     });
 
     it('usuário comum recebe 403', async () => {
@@ -390,14 +391,27 @@ describe('comentários (/chamados/:id/comentarios)', () => {
         });
     });
 
-    it('comentário é aceito mesmo em chamado de outro usuário (comportamento atual)', async () => {
-        // Hoje qualquer usuário autenticado comenta em qualquer chamado
-        // existente — o teste registra o comportamento para discussão futura.
+    it('bloqueia usuário comum de comentar ou listar comentários em chamado de outro usuário (404)', async () => {
         const criado = await criarChamadoDireto({ user_id: alice.id, title: 'De-Outro' });
-        const resposta = await agente
+
+        const postAlheio = await agente
             .post(`/chamados/${criado.id}/comentarios`)
             .set(bearer(tokenBob))
-            .send({ message: 'Posso ajudar?' });
+            .send({ message: 'Tentativa indevida' });
+        expect(postAlheio.status).toBe(404);
+
+        const getAlheio = await agente
+            .get(`/chamados/${criado.id}/comentarios`)
+            .set(bearer(tokenBob));
+        expect(getAlheio.status).toBe(404);
+    });
+
+    it('analista e admin podem comentar em chamado de qualquer usuário', async () => {
+        const criado = await criarChamadoDireto({ user_id: alice.id, title: 'Suporte-Atende' });
+        const resposta = await agente
+            .post(`/chamados/${criado.id}/comentarios`)
+            .set(bearer(tokenAna))
+            .send({ message: 'Em análise pela equipe.' });
         expect(resposta.status).toBe(201);
     });
 
@@ -416,12 +430,17 @@ describe('comentários (/chamados/:id/comentarios)', () => {
         expect(longo.status).toBe(400);
     });
 
-    it('404 para chamado inexistente', async () => {
-        const resposta = await agente
+    it('404 para chamado inexistente ao criar ou listar comentários', async () => {
+        const postInexistente = await agente
             .post('/chamados/99999/comentarios')
             .set(bearer(tokenAlice))
             .send({ message: 'Alguém aí?' });
-        expect(resposta.status).toBe(404);
+        expect(postInexistente.status).toBe(404);
+
+        const getInexistente = await agente
+            .get('/chamados/99999/comentarios')
+            .set(bearer(tokenAna));
+        expect(getInexistente.status).toBe(404);
     });
 
     it('400 para id inválido ao listar ou criar comentário', async () => {

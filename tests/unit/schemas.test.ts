@@ -1,5 +1,5 @@
 // Testes unitários dos schemas Zod — primeira linha de defesa da API:
-// contrato do body, mensagens e descarte de chaves desconhecidas.
+// contrato do body, sanitização, mensagens e descarte de chaves desconhecidas.
 import { describe, expect, it } from 'vitest';
 import {
     createCommentSchema,
@@ -9,18 +9,25 @@ import {
 import { loginSchema, registerSchema, updateUserSchema } from '../../src/schemas/userSchema.js';
 
 describe('registerSchema', () => {
-    it('aceita um cadastro válido', () => {
+    it('aceita um cadastro válido e normaliza email/username', () => {
         const parsed = registerSchema.safeParse({
-            username: 'joao.silva',
-            email: 'joao@empresa.com',
+            username: '  joao.silva  ',
+            email: '  Joao@Empresa.COM ',
             password_hash: 'SenhaForte123',
         });
         expect(parsed.success).toBe(true);
+        if (parsed.success) {
+            expect(parsed.data).toEqual({
+                username: 'joao.silva',
+                email: 'joao@empresa.com',
+                password_hash: 'SenhaForte123',
+            });
+        }
     });
 
-    it('exige username com pelo menos 3 caracteres', () => {
+    it('exige username com pelo menos 3 caracteres úteis (após trim)', () => {
         const parsed = registerSchema.safeParse({
-            username: 'ab',
+            username: '  ab  ',
             email: 'joao@empresa.com',
             password_hash: 'SenhaForte123',
         });
@@ -42,13 +49,30 @@ describe('registerSchema', () => {
         }
     });
 
-    it('exige senha com pelo menos 8 caracteres', () => {
-        const parsed = registerSchema.safeParse({
-            username: 'joao.silva',
-            email: 'joao@empresa.com',
-            password_hash: 'curta',
-        });
-        expect(parsed.success).toBe(false);
+    it('exige senha entre 8 e 72 caracteres e sem null bytes', () => {
+        expect(
+            registerSchema.safeParse({
+                username: 'joao.silva',
+                email: 'joao@empresa.com',
+                password_hash: 'curta',
+            }).success,
+        ).toBe(false);
+
+        expect(
+            registerSchema.safeParse({
+                username: 'joao.silva',
+                email: 'joao@empresa.com',
+                password_hash: 'a'.repeat(73),
+            }).success,
+        ).toBe(false);
+
+        expect(
+            registerSchema.safeParse({
+                username: 'joao.silva',
+                email: 'joao@empresa.com',
+                password_hash: 'SenhaForte\u0000123',
+            }).success,
+        ).toBe(false);
     });
 
     it('descarta chaves desconhecidas (tentativa de elevar papel no cadastro)', () => {
@@ -63,9 +87,12 @@ describe('registerSchema', () => {
 });
 
 describe('loginSchema', () => {
-    it('aceita credenciais bem formadas', () => {
-        const parsed = loginSchema.safeParse({ email: 'joao@empresa.com', password: 'x' });
+    it('aceita credenciais bem formadas e normaliza o email para minúsculas', () => {
+        const parsed = loginSchema.safeParse({ email: '  JOAO@Empresa.com ', password: 'x' });
         expect(parsed.success).toBe(true);
+        if (parsed.success) {
+            expect(parsed.data.email).toBe('joao@empresa.com');
+        }
     });
 
     it('rejeita e-mail inválido', () => {
@@ -89,8 +116,13 @@ describe('updateUserSchema', () => {
         expect(updateUserSchema.safeParse({}).success).toBe(false);
     });
 
-    it('rejeita senha abaixo do mínimo', () => {
+    it('rejeita payload contendo apenas campos não permitidos (ex.: role)', () => {
+        expect(updateUserSchema.safeParse({ role: 'admin' }).success).toBe(false);
+    });
+
+    it('rejeita senha abaixo do mínimo ou acima de 72 caracteres', () => {
         expect(updateUserSchema.safeParse({ password_hash: 'curta' }).success).toBe(false);
+        expect(updateUserSchema.safeParse({ password_hash: 'a'.repeat(73) }).success).toBe(false);
     });
 });
 
@@ -102,21 +134,32 @@ describe('createTicketSchema', () => {
         category: 'Hardware',
     };
 
-    it('aceita um chamado válido', () => {
-        expect(createTicketSchema.safeParse(valido).success).toBe(true);
+    it('aceita um chamado válido e aplica trim no título e descrição', () => {
+        const parsed = createTicketSchema.safeParse({
+            ...valido,
+            title: '  Impressora travada  ',
+        });
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+            expect(parsed.data.title).toBe('Impressora travada');
+        }
     });
 
-    it('exige título entre 3 e 100 caracteres', () => {
+    it('exige título entre 3 e 100 caracteres úteis (rejeita espaços em branco)', () => {
         expect(createTicketSchema.safeParse({ ...valido, title: 'ab' }).success).toBe(false);
+        expect(createTicketSchema.safeParse({ ...valido, title: '   ab   ' }).success).toBe(false);
         expect(createTicketSchema.safeParse({ ...valido, title: 'a'.repeat(101) }).success).toBe(
             false,
         );
     });
 
-    it('exige descrição entre 10 e 1000 caracteres', () => {
+    it('exige descrição entre 10 e 1000 caracteres úteis', () => {
         expect(createTicketSchema.safeParse({ ...valido, description: 'curta' }).success).toBe(
             false,
         );
+        expect(
+            createTicketSchema.safeParse({ ...valido, description: '   curta   ' }).success,
+        ).toBe(false);
         expect(
             createTicketSchema.safeParse({ ...valido, description: 'x'.repeat(1001) }).success,
         ).toBe(false);
@@ -151,13 +194,14 @@ describe('updateTicketStatusSchema', () => {
 });
 
 describe('createCommentSchema', () => {
-    it('aceita comentário de 1 a 500 caracteres', () => {
+    it('aceita comentário de 1 a 500 caracteres úteis', () => {
         expect(createCommentSchema.safeParse({ message: 'ok' }).success).toBe(true);
         expect(createCommentSchema.safeParse({ message: 'a'.repeat(500) }).success).toBe(true);
     });
 
-    it('rejeita comentário vazio ou acima de 500 caracteres', () => {
+    it('rejeita comentário vazio, só com espaços ou acima de 500 caracteres', () => {
         expect(createCommentSchema.safeParse({ message: '' }).success).toBe(false);
+        expect(createCommentSchema.safeParse({ message: '     ' }).success).toBe(false);
         expect(createCommentSchema.safeParse({ message: 'a'.repeat(501) }).success).toBe(false);
     });
 });

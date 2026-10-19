@@ -6,6 +6,7 @@ import authRoutes from './routes/authRoutes.js';
 import 'dotenv/config';
 import { errorHandler } from './middlewares/erroHandler.js';
 import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
+import { buildCorsOptions, securityHeaders } from './middlewares/securityMiddleware.js';
 import { setupSwagger } from './swagger.js';
 
 // Fábrica da aplicação Express, separada do bootstrap (server.ts) para que a
@@ -14,21 +15,19 @@ import { setupSwagger } from './swagger.js';
 export const createApp = (): express.Express => {
     const app = express();
 
+    app.disable('x-powered-by');
+    app.use(securityHeaders);
+
     setupSwagger(app);
 
-    app.use(express.json());
-    app.use(
-        cors({
-            origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-            credentials: true,
-        }),
-    );
+    app.use(express.json({ limit: '16kb' }));
+    app.use(cors(buildCorsOptions()));
     app.use(apiLimiter);
     app.use('/usuarios', userRoutes);
     app.use('/chamados', ticketRoutes);
     app.use('/auth', authRoutes);
 
-    app.get('/ping', (req, res) => res.send('Servidor novo rodando!'));
+    app.get('/ping', (_req, res) => res.send('Servidor novo rodando!'));
 
     app.use(errorHandler);
 

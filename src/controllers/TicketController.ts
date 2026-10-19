@@ -190,17 +190,21 @@ export const adicionarComentario = async (
             res.status(400).json({ error: 'Identificador inválido' });
             return;
         }
-        const userId = req.user?.id;
-        if (!userId) {
+        const claims = req.user;
+        if (!claims) {
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
+        const { id: userId, role } = claims;
         const { message } = req.body;
 
-        const ticketCheck = await pool.query<{ id: number }>(
-            'SELECT id FROM tickets WHERE id = $1',
-            [ticketId],
-        );
+        const ticketCheckQuery =
+            role === 'usuario'
+                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
+                : 'SELECT id FROM tickets WHERE id = $1';
+        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
+
+        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
         if (!ticketCheck.rowCount) {
             res.status(404).json({ error: 'Chamado não encontrado' });
             return;
@@ -238,6 +242,25 @@ export const listarComentarios = async (
             res.status(400).json({ error: 'Identificador inválido' });
             return;
         }
+        const claims = req.user;
+        if (!claims) {
+            res.status(401).json({ error: 'Token inválido.' });
+            return;
+        }
+        const { id: userId, role } = claims;
+
+        const ticketCheckQuery =
+            role === 'usuario'
+                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
+                : 'SELECT id FROM tickets WHERE id = $1';
+        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
+
+        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
+        if (!ticketCheck.rowCount) {
+            res.status(404).json({ error: 'Chamado não encontrado' });
+            return;
+        }
+
         const query = `
             SELECT 
                 ticket_comments.id, 

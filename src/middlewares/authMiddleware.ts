@@ -9,8 +9,13 @@ export interface AuthRequest<TBody = unknown> extends express.Request {
     user?: JwtClaims;
 }
 
+const MAX_TOKEN_LENGTH = 2048;
+
 const isUserRole = (role: unknown): role is JwtClaims['role'] =>
     role === 'admin' || role === 'analista' || role === 'usuario';
+
+const isValidPositiveId = (id: unknown): id is number =>
+    typeof id === 'number' && Number.isSafeInteger(id) && id >= 1;
 
 export const verifyToken = async (
     req: AuthRequest,
@@ -19,30 +24,52 @@ export const verifyToken = async (
 ): Promise<void> => {
     const authHeader = req.headers['authorization'];
 
-    if (!authHeader) {
+    if (!authHeader || typeof authHeader !== 'string') {
         res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
         return;
     }
 
-    const tokenParts = authHeader.split(' ');
+    const tokenParts = authHeader.trim().split(' ');
 
-    if (tokenParts.length !== 2 || tokenParts[0] !== 'Bearer' || !tokenParts[1]) {
+    if (
+        tokenParts.length !== 2 ||
+        tokenParts[0] !== 'Bearer' ||
+        !tokenParts[1] ||
+        tokenParts[1].length > MAX_TOKEN_LENGTH ||
+        /\s/.test(tokenParts[1])
+    ) {
         res.status(401).json({ error: 'Formato de token inválido.' });
         return;
     }
 
     const [, token] = tokenParts;
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        next(new Error('JWT_SECRET não definido'));
+        return;
+    }
 
     let claims: JwtClaims;
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+        const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
         if (typeof decoded === 'string') {
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
         const payload = decoded as Record<string, unknown>;
         const { id, role, iat, exp } = payload;
-        if (typeof id !== 'number' || !isUserRole(role) || typeof exp !== 'number') {
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        const validIat =
+            iat === undefined || (typeof iat === 'number' && Number.isFinite(iat) && iat >= 0);
+
+        if (
+            !isValidPositiveId(id) ||
+            !isUserRole(role) ||
+            typeof exp !== 'number' ||
+            !Number.isFinite(exp) ||
+            exp <= nowSeconds ||
+            !validIat
+        ) {
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
