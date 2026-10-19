@@ -116,3 +116,4 @@ UPDATE users SET role = 'admin' WHERE email = 'fulano@teste.com';
 - Suite de testes automatizados (Vitest) cobrindo backend (unitários + integração) e frontend (unitários + integração).
 - Sem notificações, anexos, SLA/métricas ou recuperação de senha.
 - Estrutura da API também exercitável manualmente via `test.rest`.
+- Próximos passos e prioridades de evolução documentados em [`ROADMAP.md`](./ROADMAP.md).
