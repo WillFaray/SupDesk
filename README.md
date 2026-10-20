@@ -39,9 +39,17 @@ CORS_ORIGIN=http://localhost:3000
 ```
 
 ```bash
-# 3. Criar o banco e o esquema (usuário, chamados, comentários e tokens revogados)
+# 3. Criar o banco e aplicar as migrações versionadas (+ seed opcional)
 createdb supdesk
-psql -d supdesk -f setup.sql
+npm run db:migrate
+npm run db:seed       # opcional: popula usuários, chamados e comentários de exemplo
+```
+
+Outros comandos de banco disponíveis:
+
+```bash
+npm run db:reset       # recria o esquema do zero e reaplica todas as migrações
+npm run db:reset:seed  # recria o esquema, aplica migrações e popula o seed local
 ```
 
 ## Operação

@@ -21,6 +21,7 @@ export default defineConfig({
             include: ['src/**'],
             exclude: [
                 'src/server.ts', // bootstrap (listen) — coberto indiretamente pela app
+                'src/db/cli.ts', // entrypoint CLI de banco — lógica coberta em migrator/seed
                 'src/swagger.ts', // documentação
                 'src/types/**', // só tipos
             ],
