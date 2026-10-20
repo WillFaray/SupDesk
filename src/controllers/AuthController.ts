@@ -2,6 +2,7 @@ import type express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../database.js';
+import { recordAuthEvent } from '../observability/metrics.js';
 import { revokeToken } from '../tokenRevocation.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
 import type { LoginDTO } from '../schemas/userSchema.js';
@@ -20,6 +21,7 @@ export const login = async (
         const user = userResult.rows[0];
 
         if (!user) {
+            recordAuthEvent('loginFailure');
             res.status(401).json({ error: 'Credenciais inválidas' });
             return;
         }
@@ -27,6 +29,7 @@ export const login = async (
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
         if (!isPasswordValid) {
+            recordAuthEvent('loginFailure');
             res.status(401).json({ error: 'Email ou senha inválidos' });
             return;
         }
@@ -40,6 +43,8 @@ export const login = async (
             algorithm: 'HS256',
             expiresIn: '8h',
         });
+
+        recordAuthEvent('loginSuccess');
 
         res.status(200).json({
             message: 'Login bem-sucedido',
@@ -66,6 +71,7 @@ export const logout = async (
         }
 
         await revokeToken(token, claims.exp);
+        recordAuthEvent('logout');
 
         res.status(200).json({
             message: 'Logout realizado com sucesso. O token foi revogado no servidor.',

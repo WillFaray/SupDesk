@@ -2,6 +2,7 @@ import type express from 'express';
 import jwt from 'jsonwebtoken';
 import { consultarSessao } from '../authSession.js';
 import type { EstadoSessao } from '../authSession.js';
+import { recordAuthEvent } from '../observability/metrics.js';
 import type { JwtClaims } from '../types/db.js';
 
 export interface AuthRequest<TBody = unknown> extends express.Request {
@@ -25,6 +26,7 @@ export const verifyToken = async (
     const authHeader = req.headers['authorization'];
 
     if (!authHeader || typeof authHeader !== 'string') {
+        recordAuthEvent('tokenRejected');
         res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
         return;
     }
@@ -38,6 +40,7 @@ export const verifyToken = async (
         tokenParts[1].length > MAX_TOKEN_LENGTH ||
         /\s/.test(tokenParts[1])
     ) {
+        recordAuthEvent('tokenRejected');
         res.status(401).json({ error: 'Formato de token inválido.' });
         return;
     }
@@ -53,6 +56,7 @@ export const verifyToken = async (
     try {
         const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
         if (typeof decoded === 'string') {
+            recordAuthEvent('tokenRejected');
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
@@ -70,6 +74,7 @@ export const verifyToken = async (
             exp <= nowSeconds ||
             !validIat
         ) {
+            recordAuthEvent('tokenRejected');
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
@@ -80,6 +85,7 @@ export const verifyToken = async (
             iat: typeof iat === 'number' ? iat : 0,
         };
     } catch {
+        recordAuthEvent('tokenRejected');
         res.status(401).json({ error: 'Token inválido.' });
         return;
     }
@@ -95,11 +101,13 @@ export const verifyToken = async (
     }
 
     if (estado.situacao === 'inexistente') {
+        recordAuthEvent('tokenRejected');
         res.status(401).json({ error: 'Usuário não encontrado. Faça login novamente.' });
         return;
     }
 
     if (estado.situacao === 'revogada') {
+        recordAuthEvent('tokenRevokedRejected');
         res.status(401).json({ error: 'Token revogado. Faça login novamente.' });
         return;
     }
@@ -113,10 +121,12 @@ export const requireRole =
     (...roles: JwtClaims['role'][]) =>
     (req: AuthRequest, res: express.Response, next: express.NextFunction): void => {
         if (!req.user) {
+            recordAuthEvent('tokenRejected');
             res.status(401).json({ error: 'Acesso negado. Token não fornecido.' });
             return;
         }
         if (!roles.includes(req.user.role)) {
+            recordAuthEvent('forbiddenAccess');
             res.status(403).json({
                 error: `Acesso negado. Requer papel: ${roles.join(' ou ')}.`,
             });

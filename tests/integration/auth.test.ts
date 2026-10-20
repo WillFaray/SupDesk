@@ -4,6 +4,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import supertest from 'supertest';
 import { createApp } from '../../src/app.js';
 import pool from '../../src/database.js';
+import { resetMetrics } from '../../src/observability/metrics.js';
 import { criarUsuario, limparTabelas, logar } from '../helpers/db.js';
 
 // Os limites de taxa (ex.: 3 registros/hora, 100 req/15 min) inviabilizariam a
@@ -21,6 +22,7 @@ const EMAIL = 'maria@empresa.com';
 const SENHA = 'SenhaForte123';
 
 beforeEach(async () => {
+    resetMetrics();
     await limparTabelas();
     await criarUsuario({ username: 'maria.souza', email: EMAIL, password: SENHA });
 });
@@ -114,5 +116,70 @@ describe('POST /auth/logout', () => {
     it('exige token (401 sem Authorization)', async () => {
         const resposta = await agente.post('/auth/logout');
         expect(resposta.status).toBe(401);
+    });
+});
+
+describe('Observabilidade (/health, /metrics e X-Request-Id)', () => {
+    it('gera X-Request-Id automaticamente e preserva quando enviado pelo cliente', async () => {
+        const gerado = await agente.get('/ping');
+        expect(gerado.headers['x-request-id']).toMatch(/^[0-9a-f-]{36}$/i);
+
+        const propagado = await agente
+            .get('/ping')
+            .set('X-Request-Id', 'req-teste-observabilidade');
+        expect(propagado.headers['x-request-id']).toBe('req-teste-observabilidade');
+    });
+
+    it('GET /health verifica conectividade com o banco e retorna métricas do pool', async () => {
+        const resposta = await agente.get('/health');
+        expect(resposta.status).toBe(200);
+        expect(resposta.body).toMatchObject({
+            status: 'ok',
+            database: {
+                status: 'up',
+                pool: {
+                    totalCount: expect.any(Number),
+                    idleCount: expect.any(Number),
+                    waitingCount: expect.any(Number),
+                },
+            },
+        });
+    });
+
+    it('GET /metrics exige papel admin e expõe métricas por rota, erros e autenticação', async () => {
+        const semToken = await agente.get('/metrics');
+        expect(semToken.status).toBe(401);
+
+        const tokenUsuario = await logar(app, EMAIL, SENHA);
+        const proibido = await agente
+            .get('/metrics')
+            .set('Authorization', `Bearer ${tokenUsuario}`);
+        expect(proibido.status).toBe(403);
+
+        await criarUsuario({
+            username: 'admin.obs',
+            email: 'admin.obs@empresa.com',
+            password: SENHA,
+            role: 'admin',
+        });
+        const tokenAdmin = await logar(app, 'admin.obs@empresa.com', SENHA);
+
+        const metricas = await agente.get('/metrics').set('Authorization', `Bearer ${tokenAdmin}`);
+        expect(metricas.status).toBe(200);
+
+        const corpo = metricas.body as {
+            requests: { total: number };
+            routes: Record<string, { count: number; avgDurationMs: number }>;
+            errorsByType: { unauthorized: number; forbidden: number };
+            auth: { loginSuccess: number; forbiddenAccess: number; tokenRejected: number };
+        };
+
+        expect(corpo.requests.total).toBeGreaterThanOrEqual(4);
+        expect(corpo.routes['POST /auth/login']?.count).toBe(2);
+        expect(corpo.errorsByType.unauthorized).toBeGreaterThanOrEqual(1);
+        expect(corpo.errorsByType.forbidden).toBeGreaterThanOrEqual(1);
+        expect(corpo.auth.loginSuccess).toBe(2);
+        expect(corpo.auth.forbiddenAccess).toBe(1);
+        expect(corpo.auth.tokenRejected).toBe(1);
     });
 });

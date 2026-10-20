@@ -3,8 +3,10 @@ import cors from 'cors';
 import userRoutes from './routes/userRoutes.js';
 import ticketRoutes from './routes/ticketRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import observabilityRoutes from './routes/observabilityRoutes.js';
 import 'dotenv/config';
 import { errorHandler } from './middlewares/erroHandler.js';
+import { observabilityMiddleware } from './middlewares/observabilityMiddleware.js';
 import { apiLimiter } from './middlewares/rateLimitMiddleware.js';
 import { buildCorsOptions, securityHeaders } from './middlewares/securityMiddleware.js';
 import { setupSwagger } from './swagger.js';
@@ -17,12 +19,14 @@ export const createApp = (): express.Express => {
 
     app.disable('x-powered-by');
     app.use(securityHeaders);
+    app.use(observabilityMiddleware);
 
     setupSwagger(app);
 
     app.use(express.json({ limit: '16kb' }));
     app.use(cors(buildCorsOptions()));
     app.use(apiLimiter);
+    app.use(observabilityRoutes);
     app.use('/usuarios', userRoutes);
     app.use('/chamados', ticketRoutes);
     app.use('/auth', authRoutes);
