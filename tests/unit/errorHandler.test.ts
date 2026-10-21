@@ -23,36 +23,60 @@ describe('errorHandler', () => {
         expect(corpos[0]).toEqual({
             error: 'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.',
         });
-        // A mensagem original fica só no log do servidor, nunca na resposta.
         expect(JSON.stringify(corpos)).not.toContain('boom');
         expect(next).not.toHaveBeenCalled();
         expect(spyConsole).toHaveBeenCalledOnce();
     });
 
-    it('serializa AppError com statusCode e detalhes opcionais', () => {
-        const { res, statuses, corpos } = resFalsa();
-        const next = vi.fn();
-        const erro = AppError.badRequest('Erro de validação', [
-            { campo: 'title', erro: 'Título obrigatório' },
-        ]);
+    it('serializa AppError e todas as suas fábricas estáticas (400, 401, 403, 404, 409)', () => {
+        const casos: { erro: AppError; status: number; body: Record<string, unknown> }[] = [
+            {
+                erro: AppError.badRequest('Erro de validação', [
+                    { campo: 'title', erro: 'Título obrigatório' },
+                ]),
+                status: 400,
+                body: {
+                    error: 'Erro de validação',
+                    detalhes: [{ campo: 'title', erro: 'Título obrigatório' }],
+                },
+            },
+            {
+                erro: AppError.unauthorized('Sessão inválida'),
+                status: 401,
+                body: { error: 'Sessão inválida' },
+            },
+            {
+                erro: AppError.forbidden('Sem permissão'),
+                status: 403,
+                body: { error: 'Sem permissão' },
+            },
+            {
+                erro: AppError.notFound('Não achou'),
+                status: 404,
+                body: { error: 'Não achou' },
+            },
+            {
+                erro: AppError.conflict('Conflito de dados'),
+                status: 409,
+                body: { error: 'Conflito de dados' },
+            },
+        ];
 
-        errorHandler(erro, reqPadrao(), res, next);
-
-        expect(statuses).toEqual([400]);
-        expect(corpos[0]).toEqual({
-            error: 'Erro de validação',
-            detalhes: [{ campo: 'title', erro: 'Título obrigatório' }],
-        });
+        for (const c of casos) {
+            const { res, statuses, corpos } = resFalsa();
+            errorHandler(c.erro, reqPadrao(), res, vi.fn());
+            expect(statuses).toEqual([c.status]);
+            expect(corpos[0]).toEqual(c.body);
+        }
     });
 
     it('converte ZodError em 400 com detalhes padronizados', () => {
         const { res, statuses, corpos } = resFalsa();
-        const next = vi.fn();
         const schema = z.object({ email: z.string().email('Email inválido') });
         const parsed = schema.safeParse({ email: 'invalido' });
         if (parsed.success) throw new Error('Deveria falhar');
 
-        errorHandler(parsed.error, reqPadrao(), res, next);
+        errorHandler(parsed.error, reqPadrao(), res, vi.fn());
 
         expect(statuses).toEqual([400]);
         expect(corpos[0]).toEqual({
@@ -63,13 +87,12 @@ describe('errorHandler', () => {
 
     it('converte SyntaxError de JSON malformado (express.json) em 400', () => {
         const { res, statuses, corpos } = resFalsa();
-        const next = vi.fn();
         const syntaxErr = Object.assign(new SyntaxError('Unexpected end of JSON input'), {
             status: 400,
             type: 'entity.parse.failed',
         });
 
-        errorHandler(syntaxErr, reqPadrao(), res, next);
+        errorHandler(syntaxErr, reqPadrao(), res, vi.fn());
 
         expect(statuses).toEqual([400]);
         expect(corpos[0]).toEqual({
@@ -77,39 +100,91 @@ describe('errorHandler', () => {
         });
     });
 
-    it('mapeia violação de unicidade de email do PostgreSQL (23505) para 409', () => {
+    it('converte erro de payload acima do limite (entity.too.large) em 413', () => {
         const { res, statuses, corpos } = resFalsa();
-        const next = vi.fn();
-        const pgErr = Object.assign(
-            new Error('duplicate key value violates unique constraint "users_email_key"'),
-            {
-                code: '23505',
-                constraint: 'users_email_key',
-                detail: 'Key (email)=(dup@empresa.com) already exists.',
-            },
-        );
+        const largeErr = Object.assign(new Error('request entity too large'), {
+            status: 413,
+            type: 'entity.too.large',
+        });
 
-        errorHandler(pgErr, reqPadrao(), res, next);
+        errorHandler(largeErr, reqPadrao(), res, vi.fn());
 
-        expect(statuses).toEqual([409]);
+        expect(statuses).toEqual([413]);
         expect(corpos[0]).toEqual({
-            error: 'Email já cadastrado.',
+            error: 'Corpo da requisição excede o limite permitido.',
         });
     });
 
-    it('mapeia erros de tipo/identificador do PostgreSQL (22P02 / 22003) para 400', () => {
-        const { res, statuses, corpos } = resFalsa();
-        const next = vi.fn();
-        const pgErr = Object.assign(new Error('invalid input syntax for type integer: "abc"'), {
-            code: '22P02',
-        });
+    it('mapeia códigos conhecidos do PostgreSQL (23505, 23503, 23502, 23514, 22P02, 22001, 22003) e erros genéricos de banco', () => {
+        const spyConsole = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const casosPg: {
+            code: string;
+            constraint?: string;
+            esperadoStatus: number;
+            esperadoErro: string;
+        }[] = [
+            {
+                code: '23505',
+                constraint: 'users_email_key',
+                esperadoStatus: 409,
+                esperadoErro: 'Email já cadastrado.',
+            },
+            {
+                code: '23505',
+                constraint: 'revoked_tokens_token_hash_key',
+                esperadoStatus: 409,
+                esperadoErro: 'Registro duplicado.',
+            },
+            {
+                code: '23503',
+                esperadoStatus: 400,
+                esperadoErro: 'Referência inválida para o recurso informado.',
+            },
+            {
+                code: '23502',
+                esperadoStatus: 400,
+                esperadoErro: 'Campo obrigatório não informado.',
+            },
+            {
+                code: '23514',
+                esperadoStatus: 400,
+                esperadoErro: 'Valor inválido para as regras do recurso.',
+            },
+            {
+                code: '22P02',
+                esperadoStatus: 400,
+                esperadoErro: 'Identificador inválido',
+            },
+            {
+                code: '22001',
+                esperadoStatus: 400,
+                esperadoErro: 'Valor excede o tamanho máximo permitido.',
+            },
+            {
+                code: '22003',
+                esperadoStatus: 400,
+                esperadoErro: 'Identificador inválido',
+            },
+            {
+                code: '08006',
+                esperadoStatus: 500,
+                esperadoErro:
+                    'Ocorreu um erro interno no servidor. Por favor, tente novamente mais tarde.',
+            },
+        ];
 
-        errorHandler(pgErr, reqPadrao(), res, next);
+        for (const item of casosPg) {
+            const { res, statuses, corpos } = resFalsa();
+            const pgErr = Object.assign(new Error('erro pg'), {
+                code: item.code,
+                constraint: item.constraint,
+            });
+            errorHandler(pgErr, reqPadrao(), res, vi.fn());
+            expect(statuses).toEqual([item.esperadoStatus]);
+            expect(corpos[0]).toEqual({ error: item.esperadoErro });
+        }
 
-        expect(statuses).toEqual([400]);
-        expect(corpos[0]).toEqual({
-            error: 'Identificador inválido',
-        });
+        expect(spyConsole).toHaveBeenCalledOnce();
     });
 
     it('mascara senhas, Bearer tokens e JWTs nos logs de erro crítico', () => {

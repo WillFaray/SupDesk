@@ -40,7 +40,7 @@ vi.mock('./lib/api', () => {
   };
 });
 
-import { api } from './lib/api';
+import { ApiError, api } from './lib/api';
 
 const joao: UsuarioLogado = {
   id: 3,
@@ -335,5 +335,56 @@ describe('App — abertura e detalhe do chamado', () => {
     await waitFor(() => expect(api.excluirChamado).toHaveBeenCalledWith(77));
     expect(await screen.findByRole('heading', { name: 'Chamados' })).toBeInTheDocument();
     expect(await screen.findByText('Chamado #77 excluído.')).toBeInTheDocument();
+  });
+
+  it('reverte status otimista e mostra alerta quando atualização de status falha no detalhe', async () => {
+    const usuario = userEvent.setup();
+    vi.mocked(api.obterChamado).mockResolvedValue({
+      ...chamado(88, 'Aberto'),
+      title: 'Falha no ERP',
+    });
+    vi.mocked(api.atualizarStatus).mockRejectedValue(new Error('Falha 500'));
+
+    renderApp({ rota: '/chamados/88', usuario: mariana });
+
+    expect(await screen.findByRole('heading', { name: 'Falha no ERP' })).toBeInTheDocument();
+    await usuario.click(screen.getByRole('button', { name: /Assumir e iniciar/ }));
+
+    expect(
+      await screen.findByText('Não foi possível atualizar o status. Revertido para "Aberto".'),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText('Não foi possível atualizar o status do chamado.'),
+    ).toBeInTheDocument();
+  });
+
+  it('exibe estado de erro no detalhe quando o chamado retorna 404 e permite voltar à fila', async () => {
+    const usuario = userEvent.setup();
+    vi.mocked(api.obterChamado).mockRejectedValue(new ApiError('Chamado não encontrado', 404));
+
+    renderApp({ rota: '/chamados/999', usuario: joao });
+
+    expect(await screen.findByText('Chamado não encontrado')).toBeInTheDocument();
+    await usuario.click(screen.getByRole('button', { name: 'Voltar à fila' }));
+    expect(await screen.findByRole('heading', { name: 'Chamados' })).toBeInTheDocument();
+  });
+
+  it('exibe toast de erro na fila quando analista falha ao assumir chamado', async () => {
+    const usuario = userEvent.setup();
+    vi.mocked(api.listarChamados).mockResolvedValue({
+      paginaAtual: 1,
+      limite: 50,
+      total: 1,
+      tickets: [chamado(105)],
+    });
+    vi.mocked(api.atualizarStatus).mockRejectedValue(new Error('Erro de rede'));
+
+    renderApp({ usuario: mariana });
+
+    await usuario.click(await screen.findByRole('button', { name: /Assumir/ }));
+
+    expect(
+      await screen.findByText('Não foi possível atualizar o chamado #105.'),
+    ).toBeInTheDocument();
   });
 });

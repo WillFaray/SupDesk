@@ -78,13 +78,18 @@ describe('validate', () => {
 });
 
 describe('parsePositiveIntId e validateIdParam', () => {
-    it('aceita inteiros positivos dentro do limite de INT4 do PostgreSQL', () => {
+    it('aceita inteiros positivos dentro do limite de INT4 do PostgreSQL (string ou number)', () => {
+        expect(parsePositiveIntId(1)).toBe(1);
+        expect(parsePositiveIntId(42)).toBe(42);
         expect(parsePositiveIntId('1')).toBe(1);
         expect(parsePositiveIntId('42')).toBe(42);
         expect(parsePositiveIntId('2147483647')).toBe(2147483647);
     });
 
     it('rejeita zero, negativos, decimais, alfanuméricos e overflow de INT4', () => {
+        expect(parsePositiveIntId(0)).toBeNull();
+        expect(parsePositiveIntId(-1)).toBeNull();
+        expect(parsePositiveIntId(1.5)).toBeNull();
         expect(parsePositiveIntId('')).toBeNull();
         expect(parsePositiveIntId('0')).toBeNull();
         expect(parsePositiveIntId('01')).toBeNull();

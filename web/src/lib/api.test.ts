@@ -124,4 +124,37 @@ describe('camada HTTP', () => {
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer t-logout');
   });
+
+  it('converte AbortError (timeout) em ApiError 408', async () => {
+    const abortErr = new Error('The operation was aborted');
+    abortErr.name = 'AbortError';
+    fetchMock.mockRejectedValue(abortErr);
+
+    await expect(api.listarChamados()).rejects.toMatchObject({
+      status: 408,
+      message: expect.stringContaining('Sem resposta do servidor'),
+    });
+  });
+
+  it('retorna undefined em respostas 204 No Content e cobre métodos de escrita', async () => {
+    fetchMock.mockResolvedValue({ ok: true, status: 204, json: vi.fn() } as unknown as Response);
+    await expect(api.excluirChamado(10)).resolves.toBeUndefined();
+
+    fetchMock.mockResolvedValue(resposta(200, { id: 10, status: 'Resolvido' }));
+    await api.atualizarStatus(10, 'Resolvido');
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/chamados/10',
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ status: 'Resolvido' }) }),
+    );
+
+    fetchMock.mockResolvedValue(resposta(201, { comment: { id: 1 } }));
+    await api.comentar(10, 'Nova mensagem');
+    expect(fetchMock).toHaveBeenLastCalledWith(
+      '/api/chamados/10/comentarios',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ message: 'Nova mensagem' }),
+      }),
+    );
+  });
 });
