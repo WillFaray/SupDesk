@@ -78,13 +78,55 @@ router.post('/', verifyToken, validate(createTicketSchema), CreateTicket);
  * @swagger
  * /chamados:
  *   get:
- *     summary: Lista todos os chamados
+ *     summary: Lista todos os chamados com filtros, busca, ordenação, resumo e paginação
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [Aberto, Em andamento, Resolvido]
+ *       - in: query
+ *         name: priority
+ *         schema:
+ *           type: string
+ *           enum: [Baixa, Média, Alta]
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [Hardware, Software, Rede, Outros]
+ *       - in: query
+ *         name: q
+ *         description: Busca textual por título, descrição, autor, responsável ou nº do chamado
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [created_at, priority, status, updated_at]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
  *     responses:
  *       200:
- *         description: Lista de chamados
+ *         description: Lista paginada de chamados com resumo operacional
  *       401:
  *         description: Token inválido ou não fornecido
  *         content:

@@ -2,7 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, ApiError } from './api';
 import { demoChamados, demoComentarios, demoUsuarios } from './demo';
 import { IS_DEMO } from './auth';
-import type { Chamado, Comentario, FiltrosChamados, ListaChamados, Usuario } from './types';
+import {
+  calcularResumoChamados,
+  filtrarChamadosTexto,
+  ordenarChamados,
+  type Chamado,
+  type Comentario,
+  type FiltrosChamados,
+  type ListaChamados,
+  type Usuario,
+} from './types';
 
 export const DEMO_LABEL = IS_DEMO;
 
@@ -17,6 +26,8 @@ function demoStatus(f: FiltrosChamados) {
   if (f.status) lista = lista.filter((c) => c.status === f.status);
   if (f.priority) lista = lista.filter((c) => c.priority === f.priority);
   if (f.category) lista = lista.filter((c) => c.category === f.category);
+  if (f.q) lista = filtrarChamadosTexto(lista, f.q);
+  lista = ordenarChamados(lista, f.sortBy ?? 'created_at', f.sortOrder);
   return lista;
 }
 
@@ -32,13 +43,19 @@ export function useChamados(filtros: FiltrosChamados = {}) {
     setError(null);
     try {
       if (IS_DEMO) {
-        await delay(380);
-        const lista = demoStatus(filtros);
+        await delay(280);
+        const listaFiltrada = demoStatus(filtros);
+        const paginaAtual = Math.max(1, filtros.page ?? 1);
+        const limite = Math.max(1, filtros.limit ?? 10);
+        const inicio = (paginaAtual - 1) * limite;
+        const paginados = listaFiltrada.slice(inicio, inicio + limite);
         setData({
-          paginaAtual: filtros.page ?? 1,
-          limite: filtros.limit ?? 10,
-          total: lista.length,
-          tickets: lista,
+          paginaAtual,
+          limite,
+          total: listaFiltrada.length,
+          totalPaginas: Math.max(1, Math.ceil(listaFiltrada.length / limite)),
+          resumo: calcularResumoChamados(demoChamados),
+          tickets: paginados,
         });
       } else {
         const r = await api.listarChamados(filtros);

@@ -97,4 +97,31 @@ describe('QueueTable', () => {
     // navegação fica a cargo do Router; basta o botão existir e ser clicável
     expect(link).toBeInTheDocument();
   });
+
+  it('permite ordenar clicando nos cabeçalhos de coluna quando aoOrdenar é fornecido', async () => {
+    const aoOrdenar = vi.fn();
+    const usuario = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <QueueTable
+          chamados={[chamado({ id: 1 })]}
+          atualizando={null}
+          pode={true}
+          mover={() => {}}
+          sortBy="priority"
+          sortOrder="desc"
+          aoOrdenar={aoOrdenar}
+        />
+      </MemoryRouter>,
+    );
+
+    await usuario.click(screen.getByRole('button', { name: 'Ordenar por nº' }));
+    expect(aoOrdenar).toHaveBeenCalledWith('priority');
+
+    await usuario.click(screen.getByRole('button', { name: 'Ordenar por espera' }));
+    expect(aoOrdenar).toHaveBeenCalledWith('created_at');
+
+    await usuario.click(screen.getByRole('button', { name: 'Ordenar por status' }));
+    expect(aoOrdenar).toHaveBeenCalledWith('status');
+  });
 });

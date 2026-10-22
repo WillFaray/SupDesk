@@ -195,6 +195,88 @@ describe('GET /chamados (listagem e escopo por papel)', () => {
             'R-Aberto-Media-Hardware',
         ]);
     });
+
+    it('busca textual por q (título, descrição, autor ou id) e ordena por prioridade, status e data', async () => {
+        const c1 = await criarChamadoDireto({
+            user_id: alice.id,
+            title: 'Impressora travada no financeiro',
+            description: 'Papel atolado na bandeja 2',
+            status: 'Resolvido',
+            priority: 'Baixa',
+            category: 'Hardware',
+            criadoHaMinutos: 40,
+        });
+        await criarChamadoDireto({
+            user_id: bob.id,
+            title: 'Queda de link VPN',
+            description: 'Sem acesso externo à matriz',
+            status: 'Aberto',
+            priority: 'Alta',
+            category: 'Rede',
+            criadoHaMinutos: 20,
+        });
+        await criarChamadoDireto({
+            user_id: alice.id,
+            title: 'Erro ao exportar planilha',
+            description: 'Módulo contábil apresenta falha',
+            status: 'Em andamento',
+            priority: 'Média',
+            category: 'Software',
+            criadoHaMinutos: 10,
+        });
+
+        // Busca textual por termo na descrição
+        const buscaDesc = await agente.get('/chamados?q=bandeja').set(bearer(tokenAdm));
+        expect(buscaDesc.status).toBe(200);
+        expect((buscaDesc.body as { tickets: { id: number }[] }).tickets.map((t) => t.id)).toEqual([
+            c1.id,
+        ]);
+
+        // Busca textual por #id
+        const buscaId = await agente
+            .get(`/chamados?q=${encodeURIComponent(`#${c1.id}`)}`)
+            .set(bearer(tokenAdm));
+        expect((buscaId.body as { tickets: { id: number }[] }).tickets.map((t) => t.id)).toEqual([
+            c1.id,
+        ]);
+
+        // Ordenação por prioridade DESC (Alta -> Média -> Baixa)
+        const ordPrio = await agente
+            .get('/chamados?sortBy=priority&sortOrder=desc')
+            .set(bearer(tokenAdm));
+        expect(
+            (ordPrio.body as { tickets: { priority: string }[] }).tickets.map((t) => t.priority),
+        ).toEqual(['Alta', 'Média', 'Baixa']);
+
+        // Ordenação por status ASC (Aberto -> Em andamento -> Resolvido)
+        const ordStatus = await agente
+            .get('/chamados?sortBy=status&sortOrder=asc')
+            .set(bearer(tokenAdm));
+        expect(
+            (ordStatus.body as { tickets: { status: string }[] }).tickets.map((t) => t.status),
+        ).toEqual(['Aberto', 'Em andamento', 'Resolvido']);
+
+        // Resumo operacional retornado na resposta
+        expect(
+            (
+                ordStatus.body as {
+                    resumo: {
+                        total: number;
+                        abertos: number;
+                        emAndamento: number;
+                        resolvidos: number;
+                        altaPrioridade: number;
+                    };
+                }
+            ).resumo,
+        ).toEqual({
+            total: 3,
+            abertos: 1,
+            emAndamento: 1,
+            resolvidos: 1,
+            altaPrioridade: 1,
+        });
+    });
 });
 
 describe('GET /chamados (paginação)', () => {

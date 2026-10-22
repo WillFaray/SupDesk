@@ -59,12 +59,13 @@ export type TicketListItemRow = {
     priority: TicketPriority;
     category: TicketCategory;
     created_at: Date;
+    updated_at: Date;
     autor_do_chamado: string;
     responsavel: string | null;
 };
 
 /** Linha do GET /chamados/:id (inclui updated_at). */
-export type TicketDetailRow = TicketListItemRow & { updated_at: Date };
+export type TicketDetailRow = TicketListItemRow;
 
 export type TicketCommentRow = {
     id: number;

@@ -387,4 +387,46 @@ describe('App — abertura e detalhe do chamado', () => {
       await screen.findByText('Não foi possível atualizar o chamado #105.'),
     ).toBeInTheDocument();
   });
+
+  it('filtra por busca textual, cartões de resumo, ordena e limpa filtros com feedback', async () => {
+    const usuario = userEvent.setup();
+    vi.mocked(api.listarChamados).mockResolvedValue({
+      paginaAtual: 1,
+      limite: 50,
+      total: 3,
+      totalPaginas: 1,
+      resumo: {
+        total: 3,
+        abertos: 1,
+        emAndamento: 1,
+        resolvidos: 1,
+        altaPrioridade: 1,
+      },
+      tickets: [
+        { ...chamado(101, 'Aberto', 'joao.silva', 'Alta'), title: 'Servidor fora do ar' },
+        { ...chamado(102, 'Em andamento', 'mariana.andrade', 'Baixa'), title: 'Instalar driver' },
+        { ...chamado(103, 'Resolvido', 'joao.silva', 'Média'), title: 'Trocar teclado' },
+      ],
+    });
+
+    renderApp({ rota: '/chamados?q=Servidor', usuario: mariana });
+
+    // A query ?q=Servidor da URL já filtra a fila e mostra a barra de filtros ativos
+    expect(await screen.findByRole('link', { name: 'Servidor fora do ar' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Instalar driver' })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Filtros ativos')).toHaveTextContent('Busca: “Servidor”');
+
+    // Limpa todos os filtros com 1 clique e vê o toast de feedback
+    await usuario.click(screen.getByRole('button', { name: /Limpar filtros/ }));
+    expect(await screen.findByText('Filtros limpos.')).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Instalar driver' })).toBeInTheDocument();
+
+    // Clica no cartão de resumo "Urgência alta" e no cabeçalho de ordenação
+    await usuario.click(screen.getByRole('button', { name: /Urgência alta/ }));
+    expect(screen.getByLabelText('Filtros ativos')).toHaveTextContent('Prioridade: Alta');
+
+    // Sincroniza fila manualmente e recebe feedback
+    await usuario.click(screen.getByRole('button', { name: 'Sincronizar fila' }));
+    expect(await screen.findByText('Fila sincronizada.')).toBeInTheDocument();
+  });
 });

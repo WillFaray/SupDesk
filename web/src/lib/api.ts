@@ -100,6 +100,9 @@ export const api = {
     if (f.status) params.set('status', f.status);
     if (f.priority) params.set('priority', f.priority);
     if (f.category) params.set('category', f.category);
+    if (f.q && f.q.trim()) params.set('q', f.q.trim());
+    if (f.sortBy) params.set('sortBy', f.sortBy);
+    if (f.sortOrder) params.set('sortOrder', f.sortOrder);
     params.set('page', String(f.page ?? 1));
     params.set('limit', String(f.limit ?? 10));
     return req<ListaChamados>(`/chamados?${params.toString()}`);

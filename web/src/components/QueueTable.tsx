@@ -1,42 +1,66 @@
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { corPrioridade, corStatus, Lamp } from './Lamp';
 import { Icon } from './Icon';
 import { Spinner } from './Loading';
-import { tempoDecorrido } from '../lib/types';
-import type { Chamado, Status } from '../lib/types';
+import { chamadoAtrasado, tempoDecorrido } from '../lib/types';
+import type { Chamado, OrdenacaoCampo, OrdenacaoDirecao, Status } from '../lib/types';
 
 export function QueueTable({
   chamados,
   atualizando,
   pode,
   mover,
+  sortBy = 'created_at',
+  sortOrder = 'desc',
+  aoOrdenar,
 }: {
   chamados: Chamado[];
   atualizando: number | null;
   pode: boolean;
   mover: (c: Chamado, novo: Status) => void;
+  sortBy?: OrdenacaoCampo;
+  sortOrder?: OrdenacaoDirecao;
+  aoOrdenar?: (campo: OrdenacaoCampo) => void;
 }) {
   const navigate = useNavigate();
+
+  function renderColHeader(label: string, campo: OrdenacaoCampo, className?: string) {
+    if (!aoOrdenar) {
+      return <span className={className}>{label}</span>;
+    }
+    const ativo = sortBy === campo;
+    return (
+      <button
+        type="button"
+        className={`queue__sort-btn${ativo ? ' is-active' : ''}${className ? ` ${className}` : ''}`}
+        onClick={() => aoOrdenar(campo)}
+        aria-label={`Ordenar por ${label.toLowerCase()}`}
+        title={`Ordenar por ${label.toLowerCase()}`}
+      >
+        <span>{label}</span>
+        {ativo && <Icon name={sortOrder === 'asc' ? 'up' : 'down'} size={11} />}
+      </button>
+    );
+  }
+
   return (
     <div className={`queue${atualizando !== null ? ' is-updating' : ''}`}>
       <div className="queue__head">
-        <span>Nº</span>
+        {renderColHeader('Nº', 'priority')}
         <span>Chamado</span>
-        <span className="qcol--espera">Espera</span>
+        {renderColHeader('Espera', 'created_at', 'qcol--espera')}
         <span className="qcol--autor">Autor</span>
         <span className="qcol--cat">Categoria</span>
-        <span className="qcol--status">Status</span>
+        {renderColHeader('Status', 'status', 'qcol--status')}
         <span className="qcol--acoes">Ações</span>
       </div>
 
       {chamados.map((c) => {
-        const atrasado =
-          c.status !== 'Resolvido' && Date.now() - new Date(c.created_at).getTime() > 24 * 3600_000;
+        const atrasado = chamadoAtrasado(c.created_at, c.status);
         return (
           <div key={c.id} className={`queue__row${atualizando === c.id ? ' is-updating' : ''}`}>
             <div className="queue__cell">
-              <span className="queue__num">
+              <span className="queue__num" title={`Prioridade ${c.priority}`}>
                 <Lamp cor={corPrioridade[c.priority]} acesa={c.priority === 'Alta'} size={8} />#
                 {c.id}
               </span>
@@ -45,6 +69,10 @@ export function QueueTable({
             <div className="queue__cell">
               <div className="queue__title">
                 <Link to={`/chamados/${c.id}`}>{c.title}</Link>
+              </div>
+              <div className="queue__submeta">
+                <span>Prioridade {c.priority}</span>
+                {c.responsavel && <span>· resp: {c.responsavel}</span>}
               </div>
             </div>
 

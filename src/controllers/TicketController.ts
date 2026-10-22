@@ -16,9 +16,29 @@ import type {
 } from '../types/db.js';
 
 const queryStr = (value: unknown): string | undefined =>
-    typeof value === 'string' && value.length > 0 ? value : undefined;
+    typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 
 const paramId = (value: unknown): number | undefined => parsePositiveIntId(value) ?? undefined;
+
+const escapeLike = (term: string): string => term.replace(/[\\%_]/g, '\\$&');
+
+type SortByField = 'created_at' | 'priority' | 'status' | 'updated_at';
+type SortDirection = 'asc' | 'desc';
+
+const buildOrderByClause = (sortBy: SortByField, sortOrder: SortDirection): string => {
+    const dir = sortOrder === 'asc' ? 'ASC' : 'DESC';
+    switch (sortBy) {
+        case 'priority':
+            return `CASE tickets.priority WHEN 'Alta' THEN 3 WHEN 'Média' THEN 2 WHEN 'Baixa' THEN 1 ELSE 0 END ${dir}, tickets.created_at DESC, tickets.id DESC`;
+        case 'status':
+            return `CASE tickets.status WHEN 'Aberto' THEN 1 WHEN 'Em andamento' THEN 2 WHEN 'Resolvido' THEN 3 ELSE 4 END ${dir}, tickets.created_at DESC, tickets.id DESC`;
+        case 'updated_at':
+            return `tickets.updated_at ${dir}, tickets.id ${dir}`;
+        case 'created_at':
+        default:
+            return `tickets.created_at ${dir}, tickets.id ${dir}`;
+    }
+};
 
 export const CreateTicket = async (
     req: AuthRequest<CreateTicketDTO>,
@@ -70,46 +90,111 @@ export const listTickets = async (
         );
         const offset = (page - 1) * limit;
 
-        let query =
-            'SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel FROM tickets JOIN users AS autor ON tickets.user_id = autor.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id WHERE 1=1';
+        const baseFrom =
+            'FROM tickets JOIN users AS autor ON tickets.user_id = autor.id LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id WHERE 1=1';
 
-        const values: (string | number)[] = [];
+        let whereClause = '';
+        const filterValues: (string | number)[] = [];
         let valueIndex = 1;
 
         // Usuário comum vê apenas os próprios chamados; admin/analista veem todos.
         if (role === 'usuario') {
-            query += ` AND tickets.user_id = $${valueIndex++}`;
-            values.push(id);
+            whereClause += ` AND tickets.user_id = $${valueIndex++}`;
+            filterValues.push(id);
         }
 
         const status = queryStr(req.query.status);
         if (status) {
-            query += ` AND tickets.status = $${valueIndex++}`;
-            values.push(status);
+            whereClause += ` AND tickets.status = $${valueIndex++}`;
+            filterValues.push(status);
         }
 
         const priority = queryStr(req.query.priority);
         if (priority) {
-            query += ` AND tickets.priority = $${valueIndex++}`;
-            values.push(priority);
+            whereClause += ` AND tickets.priority = $${valueIndex++}`;
+            filterValues.push(priority);
         }
 
         const category = queryStr(req.query.category);
         if (category) {
-            query += ` AND tickets.category = $${valueIndex++}`;
-            values.push(category);
+            whereClause += ` AND tickets.category = $${valueIndex++}`;
+            filterValues.push(category);
         }
 
-        query += ' ORDER BY tickets.created_at DESC';
-        query += ` LIMIT $${valueIndex++} OFFSET $${valueIndex++}`;
-        values.push(limit, offset);
+        const rawSearch = queryStr(req.query.q) ?? queryStr(req.query.search);
+        if (rawSearch) {
+            const cleanedId = rawSearch.startsWith('#') ? rawSearch.slice(1).trim() : rawSearch;
+            const pattern = `%${escapeLike(cleanedId)}%`;
+            whereClause += ` AND (tickets.title ILIKE $${valueIndex} ESCAPE '\\' OR tickets.description ILIKE $${valueIndex} ESCAPE '\\' OR autor.username ILIKE $${valueIndex} ESCAPE '\\' OR COALESCE(responsavel.username, '') ILIKE $${valueIndex} ESCAPE '\\' OR CAST(tickets.id AS TEXT) ILIKE $${valueIndex} ESCAPE '\\')`;
+            valueIndex++;
+            filterValues.push(pattern);
+        }
 
-        const result = await pool.query<TicketListItemRow>(query, values);
+        const rawSortBy = queryStr(req.query.sortBy);
+        const sortBy: SortByField =
+            rawSortBy === 'priority' ||
+            rawSortBy === 'status' ||
+            rawSortBy === 'updated_at' ||
+            rawSortBy === 'created_at'
+                ? rawSortBy
+                : 'created_at';
+
+        const rawSortOrder = queryStr(req.query.sortOrder)?.toLowerCase();
+        const sortOrder: SortDirection =
+            rawSortOrder === 'asc' || rawSortOrder === 'desc'
+                ? rawSortOrder
+                : sortBy === 'status'
+                  ? 'asc'
+                  : 'desc';
+
+        const orderByClause = buildOrderByClause(sortBy, sortOrder);
+
+        const listQuery = `SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, tickets.updated_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel ${baseFrom}${whereClause} ORDER BY ${orderByClause} LIMIT $${valueIndex++} OFFSET $${valueIndex++}`;
+        const listValues = [...filterValues, limit, offset];
+
+        const countQuery = `SELECT COUNT(*)::int AS total ${baseFrom}${whereClause}`;
+
+        const scopeWhere = role === 'usuario' ? 'WHERE tickets.user_id = $1' : '';
+        const scopeValues = role === 'usuario' ? [id] : [];
+        const summaryQuery = `
+            SELECT
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (WHERE tickets.status = 'Aberto')::int AS abertos,
+                COUNT(*) FILTER (WHERE tickets.status = 'Em andamento')::int AS em_andamento,
+                COUNT(*) FILTER (WHERE tickets.status = 'Resolvido')::int AS resolvidos,
+                COUNT(*) FILTER (WHERE tickets.priority = 'Alta' AND tickets.status <> 'Resolvido')::int AS alta_prioridade
+            FROM tickets
+            ${scopeWhere}
+        `;
+
+        const [result, countResult, summaryResult] = await Promise.all([
+            pool.query<TicketListItemRow>(listQuery, listValues),
+            pool.query<{ total: number }>(countQuery, filterValues),
+            pool.query<{
+                total: number;
+                abertos: number;
+                em_andamento: number;
+                resolvidos: number;
+                alta_prioridade: number;
+            }>(summaryQuery, scopeValues),
+        ]);
+
+        const total = countResult.rows[0]?.total ?? result.rows.length;
+        const totalPaginas = Math.max(1, Math.ceil(total / limit));
+        const sumRow = summaryResult.rows[0];
 
         res.status(200).json({
             paginaAtual: page,
             limite: limit,
-            total: result.rows.length,
+            total,
+            totalPaginas,
+            resumo: {
+                total: sumRow?.total ?? total,
+                abertos: sumRow?.abertos ?? 0,
+                emAndamento: sumRow?.em_andamento ?? 0,
+                resolvidos: sumRow?.resolvidos ?? 0,
+                altaPrioridade: sumRow?.alta_prioridade ?? 0,
+            },
             tickets: result.rows,
         });
     } catch (error) {

@@ -31,6 +31,21 @@ describe('camada HTTP', () => {
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer meu-token');
   });
 
+  it('inclui busca textual e parâmetros de ordenação na query quando informados', async () => {
+    fetchMock.mockResolvedValue(resposta(200, { tickets: [] }));
+
+    await api.listarChamados({
+      q: 'impressora',
+      sortBy: 'priority',
+      sortOrder: 'desc',
+      page: 1,
+      limit: 25,
+    });
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/chamados?q=impressora&sortBy=priority&sortOrder=desc&page=1&limit=25');
+  });
+
   it('não envia Authorization sem token e usa paginação padrão', async () => {
     fetchMock.mockResolvedValue(resposta(200, { tickets: [] }));
 

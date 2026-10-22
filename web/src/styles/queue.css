@@ -70,6 +70,126 @@
   color: var(--accent);
 }
 
+.queue__submeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 2px;
+}
+
+.queue__sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease-out);
+}
+
+.queue__sort-btn:hover,
+.queue__sort-btn.is-active {
+  color: var(--ink-strong);
+}
+
+.qsummary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.qsummary--board {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.qsummary__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--ground-1);
+  color: var(--ink);
+  text-align: left;
+  transition:
+    border-color var(--t-fast) var(--ease-out),
+    background var(--t-fast) var(--ease-out);
+}
+
+button.qsummary__card {
+  cursor: pointer;
+}
+
+button.qsummary__card:hover {
+  border-color: var(--hairline-strong);
+  background: var(--ground-2);
+}
+
+button.qsummary__card.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.qsummary__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+
+.qsummary__val {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.qpagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--ground-1);
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.qpagination__info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qpagination__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qpagination__pages {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 0 6px;
+}
+
 .queue__wait {
   font-family: var(--font-mono);
   font-size: 12px;
@@ -113,6 +233,10 @@
 }
 
 @media (max-width: 1100px) {
+  .qsummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .queue__head,
   .queue__row {
     grid-template-columns: 64px minmax(160px, 1fr) 88px 104px 128px;
