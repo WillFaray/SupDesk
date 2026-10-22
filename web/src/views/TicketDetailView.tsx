@@ -46,7 +46,7 @@ export function TicketDetailView() {
     setErroOtimista(null);
 
     try {
-      await atualizarStatus(data.id, novoStatus);
+      await atualizarStatus(data.id, novoStatus, user?.username);
       toast.sucesso(`Chamado #${data.id} em "${novoStatus}".`);
       void recarregarSync(); // resync silencioso
     } catch {
@@ -149,7 +149,7 @@ export function TicketDetailView() {
             size={8}
           />
           {statusExibido !== 'Aberto'
-            ? (data.responsavel ?? 'mariana.andrade')
+            ? (data.responsavel ?? user?.username ?? 'analista')
             : 'Aguardando triagem'}
         </UpdateBox>
         <UpdateBox label="Aberto em">{txHora(data.created_at)}</UpdateBox>

@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { comentarChamado } from '../lib/data';
 import { Icon } from './Icon';
 import { Spinner } from './Loading';
 import { useToast } from './Toast';
 import { txHora } from '../lib/types';
-import type { Comentario } from '../lib/types';
+import type { Comentario, Role } from '../lib/types';
 
 type CampoErro = { msg?: string };
 
@@ -12,6 +12,17 @@ function validarComentario(msg: string): CampoErro {
   const e: CampoErro = {};
   if (!msg.trim()) e.msg = 'O comentário não pode estar vazio.';
   return e;
+}
+
+function autorPadrao(): { username: string; role: Role } {
+  try {
+    const raw = localStorage.getItem('supdesk_user');
+    if (raw) {
+      const u = JSON.parse(raw) as { username?: string; role?: Role };
+      if (u.username && u.role) return { username: u.username, role: u.role };
+    }
+  } catch {}
+  return { username: 'você', role: 'usuario' };
 }
 
 export function ThreadComentarios({
@@ -31,9 +42,28 @@ export function ThreadComentarios({
   const [erroOtimista, setErroOtimista] = useState<string | null>(null);
   const toast = useToast();
 
-  const comentariosExibidos = comentarioOtimista
-    ? [comentarioOtimista, ...comentarios]
-    : comentarios;
+  // Se o comentário oficial já chegou pela prop comentários, limpa o otimista.
+  useEffect(() => {
+    if (
+      comentarioOtimista &&
+      comentarios.some(
+        (c) =>
+          c.id === comentarioOtimista.id || c.message.trim() === comentarioOtimista.message.trim(),
+      )
+    ) {
+      setComentarioOtimista(null);
+    }
+  }, [comentarios, comentarioOtimista]);
+
+  const comentariosExibidos = useMemo(() => {
+    if (!comentarioOtimista) return comentarios;
+    const jaExiste = comentarios.some(
+      (c) =>
+        c.id === comentarioOtimista.id || c.message.trim() === comentarioOtimista.message.trim(),
+    );
+    if (jaExiste) return comentarios;
+    return [...comentarios, comentarioOtimista];
+  }, [comentarios, comentarioOtimista]);
 
   function aoBlur() {
     setTocado(true);
@@ -52,12 +82,13 @@ export function ThreadComentarios({
     if (erros.msg) return;
 
     const agora = new Date().toISOString();
+    const autor = autorPadrao();
     const otimista: Comentario = {
       id: Date.now(),
       message: msg.trim(),
       created_at: agora,
-      autor_do_comentario: 'você',
-      perfil_do_autor: 'usuario',
+      autor_do_comentario: autor.username,
+      perfil_do_autor: autor.role,
     };
     setComentarioOtimista(otimista);
     setErroOtimista(null);

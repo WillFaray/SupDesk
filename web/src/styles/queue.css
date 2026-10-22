@@ -20,6 +20,13 @@
   white-space: nowrap;
 }
 
+.queue__head .qcol--acoes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .queue__row {
   display: grid;
   grid-template-columns: 72px minmax(220px, 1fr) 92px 110px 120px 118px 138px;
@@ -219,7 +226,7 @@ button.qsummary__card.is-active {
 .queue__actions {
   display: flex;
   gap: 4px;
-  justify-content: flex-end;
+  justify-content: center;
 }
 
 .queue__actions .btn {

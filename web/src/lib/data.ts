@@ -10,6 +10,7 @@ import {
   type Comentario,
   type FiltrosChamados,
   type ListaChamados,
+  type Role,
   type Usuario,
 } from './types';
 
@@ -147,14 +148,27 @@ export async function listarComentarios(id: number): Promise<Comentario[]> {
   return api.listarComentarios(id);
 }
 
-export async function atualizarStatus(id: number, status: Chamado['status']): Promise<Chamado> {
+export async function atualizarStatus(
+  id: number,
+  status: Chamado['status'],
+  responsavel?: string,
+): Promise<Chamado> {
   if (!IS_DEMO) return api.atualizarStatus(id, status);
   await delay(240);
   const c = demoChamados.find((x) => x.id === id);
   if (!c) throw new ApiError('Chamado não encontrado', 404);
   c.status = status;
   c.updated_at = new Date().toISOString();
-  c.responsavel = c.responsavel ?? 'mariana.andrade';
+  if (status !== 'Aberto') {
+    let respNome = responsavel;
+    if (!respNome) {
+      try {
+        const raw = localStorage.getItem('supdesk_user');
+        if (raw) respNome = (JSON.parse(raw) as { username?: string }).username;
+      } catch {}
+    }
+    c.responsavel = respNome ?? c.responsavel ?? 'carlos.menezes';
+  }
   return { ...c };
 }
 
@@ -185,12 +199,22 @@ export async function criarChamado(dados: {
 export async function comentarChamado(id: number, message: string): Promise<Comentario> {
   if (!IS_DEMO) return (await api.comentar(id, message)).comment;
   await delay(220);
+  let autorNome = 'você';
+  let autorPerfil: Role = 'usuario';
+  try {
+    const raw = localStorage.getItem('supdesk_user');
+    if (raw) {
+      const u = JSON.parse(raw) as { username?: string; role?: Role };
+      if (u.username) autorNome = u.username;
+      if (u.role) autorPerfil = u.role;
+    }
+  } catch {}
   const c: Comentario = {
     id: ++demoSeq,
     message,
     created_at: new Date().toISOString(),
-    autor_do_comentario: 'você',
-    perfil_do_autor: 'usuario',
+    autor_do_comentario: autorNome,
+    perfil_do_autor: autorPerfil,
   };
   demoComentarios[id] = [...(demoComentarios[id] ?? []), c];
   return c;

@@ -150,13 +150,15 @@
 }
 
 .qsearch input {
-  width: 220px;
+  width: 240px;
+  max-width: 100%;
   background: var(--ground-1);
   border: var(--hair) solid var(--hairline);
   border-radius: var(--radius-sm);
   padding: 6px 28px 6px 30px;
   font-size: 13px;
   color: var(--ink-strong);
+  text-overflow: ellipsis;
   transition: border-color var(--t-fast) var(--ease-out);
 }
 

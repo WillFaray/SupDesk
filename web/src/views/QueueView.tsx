@@ -152,15 +152,34 @@ export function QueueView() {
   const chamados = useMemo(() => {
     if (!data) return [];
     let lista = data.tickets;
+    if (statusFiltro) {
+      lista = lista.filter((c) => c.status === statusFiltro);
+    }
     if (aba === 'meus') {
       const me = user?.username;
       lista = lista.filter((c) => c.autor_do_chamado === me || c.responsavel === me);
+    }
+    if (prioridade !== 'Todas') {
+      lista = lista.filter((c) => c.priority === prioridade);
+    }
+    if (categoria !== 'Todas') {
+      lista = lista.filter((c) => c.category === categoria);
     }
     if (termoBusca) {
       lista = filtrarChamadosTexto(lista, termoBusca);
     }
     return ordenarChamados(lista, sortBy, sortOrder);
-  }, [data, aba, user?.username, termoBusca, sortBy, sortOrder]);
+  }, [
+    data,
+    statusFiltro,
+    aba,
+    user?.username,
+    prioridade,
+    categoria,
+    termoBusca,
+    sortBy,
+    sortOrder,
+  ]);
 
   const resumo = useMemo(() => {
     if (data?.resumo) return data.resumo;
@@ -170,7 +189,13 @@ export function QueueView() {
   const total = data
     ? aba === 'meus' || (termoBusca && !data.resumo)
       ? chamados.length
-      : data.total
+      : statusFiltro && data.resumo
+        ? statusFiltro === 'Aberto'
+          ? data.resumo.abertos
+          : statusFiltro === 'Em andamento'
+            ? data.resumo.emAndamento
+            : data.resumo.resolvidos
+        : data.total
     : null;
 
   const totalPaginas = useMemo(() => {
@@ -366,7 +391,7 @@ export function QueueView() {
               type="search"
               value={busca}
               onChange={(e) => atualizarBusca(e.target.value)}
-              placeholder="Filtrar por texto, autor ou #nº…"
+              placeholder="Buscar chamado ou #ID…"
               aria-label="Filtrar chamados por texto"
             />
             {busca && (
