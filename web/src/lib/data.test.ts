@@ -39,6 +39,7 @@ vi.mock('./api', () => {
       excluirChamado: vi.fn(),
       comentar: vi.fn(),
       listarComentarios: vi.fn(),
+      listarHistorico: vi.fn(),
     },
   };
 });
@@ -138,15 +139,28 @@ describe('useChamados', () => {
 });
 
 describe('useChamado', () => {
-  it('carrega o chamado e os comentários juntos', async () => {
+  it('carrega o chamado, comentários e histórico juntos', async () => {
     vi.mocked(api.obterChamado).mockResolvedValue(chamado(7));
     vi.mocked(api.listarComentarios).mockResolvedValue([comentario]);
+    vi.mocked(api.listarHistorico).mockResolvedValue([
+      {
+        id: 1,
+        tipo: 'criado',
+        status_anterior: null,
+        status_novo: 'Aberto',
+        detalhe: null,
+        created_at: '2026-06-01T10:00:00Z',
+        autor: 'joao',
+        perfil_do_autor: 'usuario',
+      },
+    ]);
 
     const { result } = renderHook(() => useChamado(7));
 
     await waitFor(() => expect(result.current.data).not.toBeNull());
     expect(result.current.data?.id).toBe(7);
     expect(result.current.comentarios).toEqual([comentario]);
+    expect(result.current.historico).toHaveLength(1);
   });
 
   it('registra erro quando o chamado não existe', async () => {

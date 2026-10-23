@@ -111,6 +111,7 @@ export const resetDatabase = async (
     migrationsDir = path.resolve('migrations'),
 ): Promise<MigrationResult> => {
     await poolOrClient.query(`
+        DROP TABLE IF EXISTS ticket_events CASCADE;
         DROP TABLE IF EXISTS ticket_comments CASCADE;
         DROP TABLE IF EXISTS tickets CASCADE;
         DROP TABLE IF EXISTS revoked_tokens CASCADE;

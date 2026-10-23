@@ -46,6 +46,10 @@ export type TicketRow = {
     priority: TicketPriority;
     category: TicketCategory;
     responsavel_id: number | null;
+    primeiro_atendimento_em: Date | null;
+    resolvido_em: Date | null;
+    resolvido_por_id: number | null;
+    resolucao: string | null;
     created_at: Date;
     updated_at: Date;
 };
@@ -64,8 +68,28 @@ export type TicketListItemRow = {
     responsavel: string | null;
 };
 
-/** Linha do GET /chamados/:id (inclui updated_at). */
-export type TicketDetailRow = TicketListItemRow;
+/** Linha do GET /chamados/:id (inclui os marcos do workflow de resolução). */
+export type TicketDetailRow = TicketListItemRow & {
+    primeiro_atendimento_em: Date | null;
+    resolvido_em: Date | null;
+    resolucao: string | null;
+    resolvido_por: string | null;
+};
+
+/** Tipos de evento da trilha do chamado (ticket_events). */
+export type TicketEventType = 'criado' | 'assumido' | 'resolvido' | 'reaberto' | 'devolvido';
+
+/** Linha do JOIN da trilha de eventos (com autor, que pode ter sido removido). */
+export type TicketEventListItemRow = {
+    id: number;
+    tipo: TicketEventType;
+    status_anterior: TicketStatus | null;
+    status_novo: TicketStatus | null;
+    detalhe: string | null;
+    created_at: Date;
+    autor: string | null;
+    perfil_do_autor: UserRole | null;
+};
 
 export type TicketCommentRow = {
     id: number;

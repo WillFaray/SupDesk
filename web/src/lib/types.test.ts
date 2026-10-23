@@ -6,6 +6,7 @@ import {
   calcularResumoChamados,
   chamadoAtrasado,
   filtrarChamadosTexto,
+  formatarIntervalo,
   ordenarChamados,
   tempoDecorrido,
   txDate,
@@ -44,6 +45,28 @@ describe('txHora', () => {
 
   it('devolve a string original quando não é uma data', () => {
     expect(txHora('jájá')).toBe('jájá');
+  });
+});
+
+describe('formatarIntervalo', () => {
+  it('retorna — quando alguma data falta ou é inválida', () => {
+    expect(formatarIntervalo(null, null)).toBe('—');
+    expect(formatarIntervalo('2026-06-01T10:00:00Z', null)).toBe('—');
+    expect(formatarIntervalo('invalido', '2026-06-01T10:00:00Z')).toBe('—');
+    expect(formatarIntervalo('2026-06-01T11:00:00Z', '2026-06-01T10:00:00Z')).toBe('—');
+  });
+
+  it('calcula durações em minutos, horas e dias', () => {
+    const t0 = '2026-06-01T10:00:00Z';
+    const t30s = '2026-06-01T10:00:30Z';
+    const t15m = '2026-06-01T10:15:00Z';
+    const t2h = '2026-06-01T12:30:00Z';
+    const t2d = '2026-06-03T12:30:00Z';
+
+    expect(formatarIntervalo(t0, t30s)).toBe('< 1 min');
+    expect(formatarIntervalo(t0, t15m)).toBe('15 min');
+    expect(formatarIntervalo(t0, t2h)).toBe('2h 30m');
+    expect(formatarIntervalo(t0, t2d)).toBe('2d 2h');
   });
 });
 

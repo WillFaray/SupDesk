@@ -156,11 +156,19 @@ describe('camada HTTP', () => {
     await expect(api.excluirChamado(10)).resolves.toBeUndefined();
 
     fetchMock.mockResolvedValue(resposta(200, { id: 10, status: 'Resolvido' }));
-    await api.atualizarStatus(10, 'Resolvido');
+    await api.atualizarStatus(10, 'Resolvido', { resolucao: 'Resolvido com sucesso' });
     expect(fetchMock).toHaveBeenLastCalledWith(
       '/api/chamados/10',
-      expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ status: 'Resolvido' }) }),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'Resolvido', resolucao: 'Resolvido com sucesso' }),
+      }),
     );
+
+    fetchMock.mockResolvedValue(resposta(200, [{ id: 1, tipo: 'criado' }]));
+    const hist = await api.listarHistorico(10);
+    expect(hist).toEqual([{ id: 1, tipo: 'criado' }]);
+    expect(fetchMock).toHaveBeenLastCalledWith('/api/chamados/10/historico', expect.anything());
 
     fetchMock.mockResolvedValue(resposta(201, { comment: { id: 1 } }));
     await api.comentar(10, 'Nova mensagem');

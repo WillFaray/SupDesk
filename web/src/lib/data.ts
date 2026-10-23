@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, ApiError } from './api';
-import { demoChamados, demoComentarios, demoUsuarios } from './demo';
+import { demoChamados, demoComentarios, demoHistorico, demoUsuarios } from './demo';
 import { IS_DEMO } from './auth';
 import {
   calcularResumoChamados,
@@ -8,6 +8,7 @@ import {
   ordenarChamados,
   type Chamado,
   type Comentario,
+  type EventoChamado,
   type FiltrosChamados,
   type ListaChamados,
   type Role,
@@ -79,6 +80,7 @@ export function useChamados(filtros: FiltrosChamados = {}) {
 export function useChamado(id: number) {
   const [data, setData] = useState<Chamado | null>(null);
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
+  const [historico, setHistorico] = useState<EventoChamado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -92,10 +94,16 @@ export function useChamado(id: number) {
         if (!c) throw new ApiError('Chamado não encontrado', 404);
         setData(c);
         setComentarios(demoComentarios[id] ?? []);
+        setHistorico(demoHistorico[id] ?? []);
       } else {
-        const [c, cmts] = await Promise.all([api.obterChamado(id), api.listarComentarios(id)]);
+        const [c, cmts, hist] = await Promise.all([
+          api.obterChamado(id),
+          api.listarComentarios(id),
+          api.listarHistorico(id).catch(() => []),
+        ]);
         setData(c);
         setComentarios(cmts);
+        setHistorico(hist);
       }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Falha ao carregar o chamado');
@@ -108,7 +116,7 @@ export function useChamado(id: number) {
     void carregar();
   }, [carregar]);
 
-  return { data, comentarios, error, loading, recarregar: carregar };
+  return { data, comentarios, historico, error, loading, recarregar: carregar };
 }
 export function useUsuarios() {
   const [data, setData] = useState<Usuario[] | null>(null);
@@ -148,27 +156,85 @@ export async function listarComentarios(id: number): Promise<Comentario[]> {
   return api.listarComentarios(id);
 }
 
+export async function listarHistorico(id: number): Promise<EventoChamado[]> {
+  if (IS_DEMO) {
+    await delay(120);
+    return demoHistorico[id] ?? [];
+  }
+  return api.listarHistorico(id);
+}
+
 export async function atualizarStatus(
   id: number,
   status: Chamado['status'],
   responsavel?: string,
+  opcoes?: { resolucao?: string; motivo?: string },
 ): Promise<Chamado> {
-  if (!IS_DEMO) return api.atualizarStatus(id, status);
+  if (!IS_DEMO) {
+    return opcoes ? api.atualizarStatus(id, status, opcoes) : api.atualizarStatus(id, status);
+  }
   await delay(240);
   const c = demoChamados.find((x) => x.id === id);
   if (!c) throw new ApiError('Chamado não encontrado', 404);
+  const statusAnterior = c.status;
   c.status = status;
-  c.updated_at = new Date().toISOString();
-  if (status !== 'Aberto') {
-    let respNome = responsavel;
-    if (!respNome) {
-      try {
-        const raw = localStorage.getItem('supdesk_user');
-        if (raw) respNome = (JSON.parse(raw) as { username?: string }).username;
-      } catch {}
+  const agora = new Date().toISOString();
+  c.updated_at = agora;
+
+  let respNome = responsavel;
+  if (!respNome) {
+    try {
+      const raw = localStorage.getItem('supdesk_user');
+      if (raw) respNome = (JSON.parse(raw) as { username?: string }).username;
+    } catch {
+      // fallback quando localStorage estiver vazio ou inválido
     }
-    c.responsavel = respNome ?? c.responsavel ?? 'carlos.menezes';
   }
+  const autorNome = respNome ?? 'carlos.menezes';
+
+  if (status === 'Em andamento') {
+    c.responsavel = autorNome;
+    if (!c.primeiro_atendimento_em) {
+      c.primeiro_atendimento_em = agora;
+    }
+  } else if (status === 'Resolvido') {
+    c.responsavel = c.responsavel ?? autorNome;
+    if (!c.primeiro_atendimento_em) {
+      c.primeiro_atendimento_em = agora;
+    }
+    c.resolvido_em = agora;
+    c.resolvido_por = autorNome;
+    c.resolucao = opcoes?.resolucao ?? 'Atendimento finalizado com sucesso.';
+  } else if (status === 'Aberto') {
+    c.responsavel = null;
+    c.resolvido_em = null;
+    c.resolvido_por = null;
+    c.resolucao = null;
+  }
+
+  const tipoEvento: EventoChamado['tipo'] =
+    status === 'Resolvido'
+      ? 'resolvido'
+      : status === 'Em andamento'
+        ? statusAnterior === 'Resolvido'
+          ? 'reaberto'
+          : 'assumido'
+        : statusAnterior === 'Resolvido'
+          ? 'reaberto'
+          : 'devolvido';
+
+  const novoEvento: EventoChamado = {
+    id: ++demoSeq,
+    tipo: tipoEvento,
+    status_anterior: statusAnterior,
+    status_novo: status,
+    detalhe: status === 'Resolvido' ? (opcoes?.resolucao ?? null) : (opcoes?.motivo ?? null),
+    created_at: agora,
+    autor: autorNome,
+    perfil_do_autor: 'analista',
+  };
+  demoHistorico[id] = [...(demoHistorico[id] ?? []), novoEvento];
+
   return { ...c };
 }
 
@@ -180,6 +246,7 @@ export async function criarChamado(dados: {
 }): Promise<Chamado> {
   if (!IS_DEMO) return api.criarChamado(dados);
   await delay(340);
+  const agora = new Date().toISOString();
   const c: Chamado = {
     id: ++demoSeq,
     title: dados.title,
@@ -187,12 +254,28 @@ export async function criarChamado(dados: {
     status: 'Aberto',
     priority: dados.priority as Chamado['priority'],
     category: dados.category as Chamado['category'],
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    created_at: agora,
+    updated_at: agora,
     autor_do_chamado: 'você',
     responsavel: null,
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   };
   demoChamados.unshift(c);
+  demoHistorico[c.id] = [
+    {
+      id: ++demoSeq,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: agora,
+      autor: 'você',
+      perfil_do_autor: 'usuario',
+    },
+  ];
   return { ...c };
 }
 
@@ -208,7 +291,9 @@ export async function comentarChamado(id: number, message: string): Promise<Come
       if (u.username) autorNome = u.username;
       if (u.role) autorPerfil = u.role;
     }
-  } catch {}
+  } catch {
+    // fallback quando localStorage estiver vazio ou inválido
+  }
   const c: Comentario = {
     id: ++demoSeq,
     message,

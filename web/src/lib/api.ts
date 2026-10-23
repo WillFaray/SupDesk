@@ -1,6 +1,7 @@
 import type {
   Chamado,
   Comentario,
+  EventoChamado,
   FiltrosChamados,
   ListaChamados,
   LoginResponse,
@@ -117,8 +118,11 @@ export const api = {
     category: string;
   }) => req<Chamado>('/chamados', { method: 'POST', body: JSON.stringify(dados) }),
 
-  atualizarStatus: (id: number, status: string) =>
-    req<Chamado>(`/chamados/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+  atualizarStatus: (id: number, status: string, opcoes?: { resolucao?: string; motivo?: string }) =>
+    req<Chamado>(`/chamados/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, ...opcoes }),
+    }),
 
   excluirChamado: (id: number) => req<void>(`/chamados/${id}`, { method: 'DELETE' }),
 
@@ -129,6 +133,8 @@ export const api = {
     }),
 
   listarComentarios: (id: number) => req<Comentario[]>(`/chamados/${id}/comentarios`),
+
+  listarHistorico: (id: number) => req<EventoChamado[]>(`/chamados/${id}/historico`),
 };
 
 export function usuarioDeLogin(u: UsuarioLogado) {

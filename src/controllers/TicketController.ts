@@ -1,5 +1,6 @@
 import type express from 'express';
 import pool from '../database.js';
+import { buildTransitionUpdate, classifyTransition } from '../domain/ticketWorkflow.js';
 import type { AuthRequest } from '../middlewares/authMiddleware.js';
 import { parsePositiveIntId } from '../middlewares/validateMiddleware.js';
 import type {
@@ -11,8 +12,10 @@ import type {
     CommentListItemRow,
     TicketCommentRow,
     TicketDetailRow,
+    TicketEventListItemRow,
     TicketListItemRow,
     TicketRow,
+    TicketStatus,
 } from '../types/db.js';
 
 const queryStr = (value: unknown): string | undefined =>
@@ -53,11 +56,31 @@ export const CreateTicket = async (
         }
 
         const { title, description, priority, category } = req.body;
-        const result = await pool.query<TicketRow>(
-            'INSERT INTO tickets (user_id, title, description, priority, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [userId, title, description, priority, category],
-        );
-        const ticket = result.rows[0];
+
+        // Criação + evento "criado" na mesma transação: a trilha nunca fica órfã.
+        const client = await pool.connect();
+        let ticket: TicketRow | undefined;
+        try {
+            await client.query('BEGIN');
+            const result = await client.query<TicketRow>(
+                'INSERT INTO tickets (user_id, title, description, priority, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+                [userId, title, description, priority, category],
+            );
+            ticket = result.rows[0];
+            if (ticket) {
+                await client.query(
+                    `INSERT INTO ticket_events (ticket_id, user_id, tipo, status_novo, created_at)
+                     VALUES ($1, $2, 'criado', 'Aberto', $3)`,
+                    [ticket.id, userId, ticket.created_at],
+                );
+            }
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
 
         if (!ticket) {
             res.status(500).json({ error: 'Erro ao criar chamado' });
@@ -213,25 +236,60 @@ export const updateTicket = async (
             res.status(400).json({ error: 'Identificador inválido' });
             return;
         }
-        const { status } = req.body;
+        const { status, resolucao, motivo } = req.body;
         const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ error: 'Token inválido.' });
             return;
         }
 
-        const result = await pool.query<TicketRow>(
-            'UPDATE tickets SET status = $1, responsavel_id = $2, updated_at = NOW() WHERE id = $3 RETURNING *',
-            [status, userId, id],
-        );
-        const ticket = result.rows[0];
+        // Transação + SELECT ... FOR UPDATE serializa transições concorrentes no
+        // mesmo chamado: dois analistas clicando "Assumir" ao mesmo tempo resultam
+        // em um 200 e um 409 — nunca em responsável sobrescrito silenciosamente.
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
 
-        if (!ticket) {
-            res.status(404).json({ error: 'Chamado não encontrado' });
-            return;
+            const current = await client.query<{ status: TicketStatus }>(
+                'SELECT status FROM tickets WHERE id = $1 FOR UPDATE',
+                [id],
+            );
+            const atual = current.rows[0];
+            if (!atual) {
+                await client.query('ROLLBACK');
+                res.status(404).json({ error: 'Chamado não encontrado' });
+                return;
+            }
+
+            const tipo = classifyTransition(atual.status, status);
+            if (!tipo) {
+                await client.query('ROLLBACK');
+                res.status(409).json({
+                    error: `O chamado já está "${status}". Atualize a página para ver o estado mais recente.`,
+                });
+                return;
+            }
+
+            const { sql, paramCount } = buildTransitionUpdate(tipo, status);
+            const params = [status, id, userId, resolucao ?? null].slice(0, paramCount);
+            const result = await client.query<TicketRow>(sql, params);
+            const ticket = result.rows[0];
+
+            const detalhe = tipo === 'resolvido' ? (resolucao ?? null) : motivo || null;
+            await client.query(
+                `INSERT INTO ticket_events (ticket_id, user_id, tipo, status_anterior, status_novo, detalhe)
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
+                [id, userId, tipo, atual.status, status, detalhe],
+            );
+
+            await client.query('COMMIT');
+            res.status(200).json(ticket);
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
         }
-
-        res.status(200).json(ticket);
     } catch (error) {
         next(error);
     }
@@ -394,11 +452,16 @@ export const getTicket = async (
                 tickets.category, 
                 tickets.created_at,
                 tickets.updated_at,
+                tickets.primeiro_atendimento_em,
+                tickets.resolvido_em,
+                tickets.resolucao,
                 autor.username AS autor_do_chamado,
-                responsavel.username AS responsavel 
+                responsavel.username AS responsavel,
+                resolvedor.username AS resolvido_por
             FROM tickets 
             JOIN users AS autor ON tickets.user_id = autor.id 
             LEFT JOIN users AS responsavel ON tickets.responsavel_id = responsavel.id 
+            LEFT JOIN users AS resolvedor ON tickets.resolvido_por_id = resolvedor.id 
             WHERE tickets.id = $1`;
 
         const values: (string | number)[] = [id];
@@ -417,6 +480,59 @@ export const getTicket = async (
         }
 
         res.status(200).json(ticket);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const listarHistorico = async (
+    req: AuthRequest,
+    res: express.Response,
+    next: express.NextFunction,
+): Promise<void> => {
+    try {
+        const ticketId = paramId(req.params.id);
+        if (!ticketId) {
+            res.status(400).json({ error: 'Identificador inválido' });
+            return;
+        }
+        const claims = req.user;
+        if (!claims) {
+            res.status(401).json({ error: 'Token inválido.' });
+            return;
+        }
+        const { id: userId, role } = claims;
+
+        // Mesmo escopo dos comentários: usuário comum só vê a trilha dos próprios chamados.
+        const ticketCheckQuery =
+            role === 'usuario'
+                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
+                : 'SELECT id FROM tickets WHERE id = $1';
+        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
+
+        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
+        if (!ticketCheck.rowCount) {
+            res.status(404).json({ error: 'Chamado não encontrado' });
+            return;
+        }
+
+        const result = await pool.query<TicketEventListItemRow>(
+            `SELECT
+                ticket_events.id,
+                ticket_events.tipo,
+                ticket_events.status_anterior,
+                ticket_events.status_novo,
+                ticket_events.detalhe,
+                ticket_events.created_at,
+                users.username AS autor,
+                users.role AS perfil_do_autor
+            FROM ticket_events
+            LEFT JOIN users ON ticket_events.user_id = users.id
+            WHERE ticket_events.ticket_id = $1
+            ORDER BY ticket_events.created_at ASC, ticket_events.id ASC`,
+            [ticketId],
+        );
+        res.status(200).json(result.rows);
     } catch (error) {
         next(error);
     }

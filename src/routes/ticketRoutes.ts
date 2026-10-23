@@ -7,6 +7,7 @@ import {
     deleteTicket,
     adicionarComentario,
     listarComentarios,
+    listarHistorico,
 } from '../controllers/TicketController.js';
 import { verifyToken, requireRole } from '../middlewares/authMiddleware.js';
 import { validate, validateIdParam } from '../middlewares/validateMiddleware.js';
@@ -179,7 +180,14 @@ router.get('/:id', verifyToken, validateIdParam, getTicket);
  * @swagger
  * /chamados/{id}:
  *   patch:
- *     summary: Atualiza o status de um chamado (somente admin ou analista)
+ *     summary: Executa uma transição do workflow do chamado (somente admin ou analista)
+ *     description: |
+ *       Etapas: Aberto (triagem) → Em andamento (atendimento) → Resolvido.
+ *       - **Assumir** (→ Em andamento): o executor vira responsável e o 1º atendimento é registrado.
+ *       - **Resolver** (→ Resolvido): exige `resolucao` (justificativa, 10–1000 caracteres).
+ *       - **Reabrir** (Resolvido → Aberto/Em andamento) e **Devolver à fila** (Em andamento → Aberto): aceitam `motivo` opcional.
+ *       Toda transição gera um evento na trilha do chamado (`GET /chamados/{id}/historico`).
+ *       Transições concorrentes são serializadas; repetir o status atual retorna 409.
  *     tags: [Chamados]
  *     security:
  *       - bearerAuth: []
@@ -202,12 +210,23 @@ router.get('/:id', verifyToken, validateIdParam, getTicket);
  *               status:
  *                 type: string
  *                 enum: [Aberto, Em andamento, Resolvido]
- *                 example: Em andamento
+ *                 example: Resolvido
+ *               resolucao:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 1000
+ *                 description: Obrigatória quando status = Resolvido
+ *                 example: Driver de vídeo revertido para a versão anterior; equipamento validado com a usuária.
+ *               motivo:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Opcional ao reabrir ou devolver à fila
+ *                 example: Sintoma voltou após reinicialização.
  *     responses:
  *       200:
- *         description: Status atualizado com sucesso
+ *         description: Transição aplicada com sucesso
  *       400:
- *         description: Dados inválidos ou identificador inválido
+ *         description: Dados inválidos (inclui resolução sem justificativa) ou identificador inválido
  *         content:
  *           application/json:
  *             schema:
@@ -228,6 +247,12 @@ router.get('/:id', verifyToken, validateIdParam, getTicket);
  *               $ref: '#/components/schemas/ErrorResponse'
  *       404:
  *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: O chamado já está no status solicitado (ex. já assumido por outro analista)
  *         content:
  *           application/json:
  *             schema:
@@ -386,5 +411,44 @@ router.post(
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.get('/:id/comentarios', verifyToken, validateIdParam, listarComentarios);
+
+/**
+ * @swagger
+ * /chamados/{id}/historico:
+ *   get:
+ *     summary: Lista a trilha de eventos do chamado (abertura, atendimento, resolução, reabertura)
+ *     tags: [Chamados]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *     responses:
+ *       200:
+ *         description: Eventos em ordem cronológica (tipo, status anterior/novo, detalhe e autor)
+ *       400:
+ *         description: Identificador inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Token inválido ou não fornecido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: Chamado não encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.get('/:id/historico', verifyToken, validateIdParam, listarHistorico);
 
 export default router;

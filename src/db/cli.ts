@@ -19,7 +19,7 @@ const executar = async (): Promise<void> => {
                 await runMigrations(pool);
                 const res = await seedDatabase(pool);
                 console.log(
-                    `[db:seed] Concluído: ${res.users} usuários sincronizados, ${res.tickets} chamados criados, ${res.comments} comentários criados (senha padrão: "${SEED_DEFAULT_PASSWORD}").`,
+                    `[db:seed] Concluído: ${res.users} usuários sincronizados, ${res.tickets} chamados criados, ${res.comments} comentários criados, ${res.events} eventos de histórico (senha padrão: "${SEED_DEFAULT_PASSWORD}").`,
                 );
                 break;
             }
@@ -31,7 +31,7 @@ const executar = async (): Promise<void> => {
                 if (flags.has('--seed')) {
                     const seed = await seedDatabase(pool);
                     console.log(
-                        `[db:reset] Seed aplicado: ${seed.users} usuários, ${seed.tickets} chamados, ${seed.comments} comentários.`,
+                        `[db:reset] Seed aplicado: ${seed.users} usuários, ${seed.tickets} chamados, ${seed.comments} comentários, ${seed.events} eventos.`,
                     );
                 }
                 break;

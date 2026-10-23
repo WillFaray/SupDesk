@@ -1,6 +1,6 @@
 // Demonstração (VITE_DEMO=true): dados sintéticos rotulados. Nunca misturar com dados reais.
 
-import type { Chamado, Comentario, Usuario } from './types';
+import type { Chamado, Comentario, EventoChamado, Usuario } from './types';
 
 export const demoUsuarios: Usuario[] = [
   {
@@ -58,6 +58,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: 'mariana.andrade',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(1.8),
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1041,
@@ -72,6 +76,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'rafael.duarte',
     responsavel: null,
     autor_role: 'usuario',
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1040,
@@ -86,6 +94,11 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: 'beatriz.lima',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(24),
+    resolvido_em: h(20),
+    resolvido_por: 'beatriz.lima',
+    resolucao:
+      'Pacote Microsoft 365 instalado e licença ativada na conta corporativa da colaboradora. Validado com ela por chamada.',
   },
   {
     id: 1039,
@@ -100,6 +113,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'rafael.duarte',
     responsavel: null,
     autor_role: 'usuario',
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1038,
@@ -114,6 +131,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: 'mariana.andrade',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(47),
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1037,
@@ -128,6 +149,11 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'rafael.duarte',
     responsavel: 'beatriz.lima',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(68),
+    resolvido_em: h(66),
+    resolvido_por: 'beatriz.lima',
+    resolucao:
+      'Driver de áudio do equipamento atualizado e saída padrão reconfigurada para os alto-falantes da sala.',
   },
   {
     id: 1036,
@@ -142,6 +168,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: null,
     autor_role: 'usuario',
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1035,
@@ -156,6 +186,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'rafael.duarte',
     responsavel: 'mariana.andrade',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(17),
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1034,
@@ -170,6 +204,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: null,
     autor_role: 'usuario',
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1033,
@@ -184,6 +222,11 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'rafael.duarte',
     responsavel: 'mariana.andrade',
     autor_role: 'usuario',
+    primeiro_atendimento_em: h(52),
+    resolvido_em: h(48),
+    resolvido_por: 'mariana.andrade',
+    resolucao:
+      'Usuário adicionado ao grupo de segurança "GRP_PROJETOS_RW" no Active Directory. Acesso validado pelo colaborador.',
   },
   {
     id: 1032,
@@ -198,6 +241,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'carlos.menezes',
     responsavel: 'beatriz.lima',
     autor_role: 'admin',
+    primeiro_atendimento_em: h(50),
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
   {
     id: 1031,
@@ -212,6 +259,10 @@ export const demoChamados: Chamado[] = [
     autor_do_chamado: 'julia.rocha',
     responsavel: null,
     autor_role: 'usuario',
+    primeiro_atendimento_em: null,
+    resolvido_em: null,
+    resolvido_por: null,
+    resolucao: null,
   },
 ];
 
@@ -250,6 +301,164 @@ export const demoComentarios: Record<number, Comentario[]> = {
         'Redefini o acesso manualmente, Julia. Tenta logar com a mesma senha dentro de 30 min.',
       created_at: h(46),
       autor_do_comentario: 'mariana.andrade',
+      perfil_do_autor: 'analista',
+    },
+  ],
+};
+
+export const demoHistorico: Record<number, EventoChamado[]> = {
+  1042: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(2),
+      autor: 'julia.rocha',
+      perfil_do_autor: 'usuario',
+    },
+    {
+      id: 2,
+      tipo: 'assumido',
+      status_anterior: 'Aberto',
+      status_novo: 'Em andamento',
+      detalhe: null,
+      created_at: h(1.8),
+      autor: 'mariana.andrade',
+      perfil_do_autor: 'analista',
+    },
+  ],
+  1041: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(4),
+      autor: 'rafael.duarte',
+      perfil_do_autor: 'usuario',
+    },
+  ],
+  1040: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(26),
+      autor: 'julia.rocha',
+      perfil_do_autor: 'usuario',
+    },
+    {
+      id: 2,
+      tipo: 'assumido',
+      status_anterior: 'Aberto',
+      status_novo: 'Em andamento',
+      detalhe: null,
+      created_at: h(24),
+      autor: 'beatriz.lima',
+      perfil_do_autor: 'analista',
+    },
+    {
+      id: 3,
+      tipo: 'resolvido',
+      status_anterior: 'Em andamento',
+      status_novo: 'Resolvido',
+      detalhe:
+        'Pacote Microsoft 365 instalado e licença ativada na conta corporativa da colaboradora. Validado com ela por chamada.',
+      created_at: h(20),
+      autor: 'beatriz.lima',
+      perfil_do_autor: 'analista',
+    },
+  ],
+  1038: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(49),
+      autor: 'julia.rocha',
+      perfil_do_autor: 'usuario',
+    },
+    {
+      id: 2,
+      tipo: 'assumido',
+      status_anterior: 'Aberto',
+      status_novo: 'Em andamento',
+      detalhe: null,
+      created_at: h(47),
+      autor: 'mariana.andrade',
+      perfil_do_autor: 'analista',
+    },
+  ],
+  1037: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(70),
+      autor: 'rafael.duarte',
+      perfil_do_autor: 'usuario',
+    },
+    {
+      id: 2,
+      tipo: 'assumido',
+      status_anterior: 'Aberto',
+      status_novo: 'Em andamento',
+      detalhe: null,
+      created_at: h(68),
+      autor: 'beatriz.lima',
+      perfil_do_autor: 'analista',
+    },
+    {
+      id: 3,
+      tipo: 'resolvido',
+      status_anterior: 'Em andamento',
+      status_novo: 'Resolvido',
+      detalhe:
+        'Driver de áudio do equipamento atualizado e saída padrão reconfigurada para os alto-falantes da sala.',
+      created_at: h(66),
+      autor: 'beatriz.lima',
+      perfil_do_autor: 'analista',
+    },
+  ],
+  1033: [
+    {
+      id: 1,
+      tipo: 'criado',
+      status_anterior: null,
+      status_novo: 'Aberto',
+      detalhe: null,
+      created_at: h(54),
+      autor: 'rafael.duarte',
+      perfil_do_autor: 'usuario',
+    },
+    {
+      id: 2,
+      tipo: 'assumido',
+      status_anterior: 'Aberto',
+      status_novo: 'Em andamento',
+      detalhe: null,
+      created_at: h(52),
+      autor: 'mariana.andrade',
+      perfil_do_autor: 'analista',
+    },
+    {
+      id: 3,
+      tipo: 'resolvido',
+      status_anterior: 'Em andamento',
+      status_novo: 'Resolvido',
+      detalhe:
+        'Usuário adicionado ao grupo de segurança "GRP_PROJETOS_RW" no Active Directory. Acesso validado pelo colaborador.',
+      created_at: h(48),
+      autor: 'mariana.andrade',
       perfil_do_autor: 'analista',
     },
   ],

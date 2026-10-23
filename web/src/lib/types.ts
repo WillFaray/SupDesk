@@ -34,6 +34,23 @@ export interface Chamado {
   autor_do_chamado: string;
   responsavel: string | null;
   autor_role?: Role;
+  primeiro_atendimento_em?: string | null;
+  resolvido_em?: string | null;
+  resolvido_por?: string | null;
+  resolucao?: string | null;
+}
+
+export type TipoEventoChamado = 'criado' | 'assumido' | 'resolvido' | 'reaberto' | 'devolvido';
+
+export interface EventoChamado {
+  id: number;
+  tipo: TipoEventoChamado;
+  status_anterior: Status | null;
+  status_novo: Status | null;
+  detalhe: string | null;
+  created_at: string;
+  autor: string | null;
+  perfil_do_autor: Role | null;
 }
 
 export interface Comentario {
@@ -171,6 +188,21 @@ export function chamadoAtrasado(iso: string, status: Status): boolean {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return false;
   return Date.now() - d.getTime() > 24 * 3600_000;
+}
+
+export function formatarIntervalo(inicio?: string | null, fim?: string | null): string {
+  if (!inicio || !fim) return '—';
+  const d1 = new Date(inicio).getTime();
+  const d2 = new Date(fim).getTime();
+  if (Number.isNaN(d1) || Number.isNaN(d2) || d2 < d1) return '—';
+  const ms = d2 - d1;
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return '< 1 min';
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `${h}h ${min % 60}m`;
+  const dias = Math.floor(h / 24);
+  return `${dias}d ${h % 24}h`;
 }
 
 export function txHora(iso: string): string {

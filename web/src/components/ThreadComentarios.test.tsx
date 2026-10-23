@@ -103,4 +103,44 @@ describe('ThreadComentarios', () => {
     expect(screen.queryByText('Vai falhar')).not.toBeInTheDocument();
     expect(aoEnviar).not.toHaveBeenCalled();
   });
+
+  it('renderiza marcos do histórico de atendimento intercalados na thread', () => {
+    const aoEnviar = vi.fn(async () => {});
+    render(
+      <ToastProvider>
+        <ThreadComentarios
+          id={7}
+          comentarios={[anterior]}
+          historico={[
+            {
+              id: 1,
+              tipo: 'assumido',
+              status_anterior: 'Aberto',
+              status_novo: 'Em andamento',
+              detalhe: null,
+              created_at: '2026-06-01T08:30:00Z',
+              autor: 'ana.analista',
+              perfil_do_autor: 'analista',
+            },
+            {
+              id: 2,
+              tipo: 'resolvido',
+              status_anterior: 'Em andamento',
+              status_novo: 'Resolvido',
+              detalhe: 'Firmware atualizado.',
+              created_at: '2026-06-01T10:00:00Z',
+              autor: 'ana.analista',
+              perfil_do_autor: 'analista',
+            },
+          ]}
+          aoEnviar={aoEnviar}
+        />
+      </ToastProvider>,
+    );
+
+    expect(screen.getByText('2 marcos de fluxo')).toBeInTheDocument();
+    expect(screen.getByText('Atendimento iniciado')).toBeInTheDocument();
+    expect(screen.getByText('Chamado concluído e resolvido')).toBeInTheDocument();
+    expect(screen.getByText('Firmware atualizado.')).toBeInTheDocument();
+  });
 });

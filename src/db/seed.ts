@@ -8,6 +8,7 @@ export interface SeedResult {
     users: number;
     tickets: number;
     comments: number;
+    events: number;
 }
 
 interface SeedUser {
@@ -25,6 +26,10 @@ interface SeedTicket {
     autorEmail: string;
     responsavelEmail: string | null;
     horasAtras: number;
+    /** Quando o chamado foi assumido (obrigatório se status ≠ Aberto). */
+    atendimentoHorasAtras?: number;
+    /** Justificativa e momento da resolução (obrigatório se status = Resolvido). */
+    resolucao?: { texto: string; horasAtras: number };
     comments: {
         autorEmail: string;
         message: string;
@@ -51,6 +56,7 @@ const SEED_TICKETS: SeedTicket[] = [
         autorEmail: 'julia@empresa.com.br',
         responsavelEmail: 'mariana@empresa.com.br',
         horasAtras: 2,
+        atendimentoHorasAtras: 1.8,
         comments: [
             {
                 autorEmail: 'mariana@empresa.com.br',
@@ -95,6 +101,11 @@ const SEED_TICKETS: SeedTicket[] = [
         autorEmail: 'julia@empresa.com.br',
         responsavelEmail: 'beatriz@empresa.com.br',
         horasAtras: 26,
+        atendimentoHorasAtras: 25,
+        resolucao: {
+            texto: 'Pacote Office instalado e licença ativada na conta corporativa da colaboradora. Validado com ela por chamada.',
+            horasAtras: 20,
+        },
         comments: [],
     },
     {
@@ -119,6 +130,7 @@ const SEED_TICKETS: SeedTicket[] = [
         autorEmail: 'julia@empresa.com.br',
         responsavelEmail: 'mariana@empresa.com.br',
         horasAtras: 49,
+        atendimentoHorasAtras: 47,
         comments: [
             {
                 autorEmail: 'mariana@empresa.com.br',
@@ -138,6 +150,11 @@ const SEED_TICKETS: SeedTicket[] = [
         autorEmail: 'rafael@empresa.com.br',
         responsavelEmail: 'beatriz@empresa.com.br',
         horasAtras: 70,
+        atendimentoHorasAtras: 69,
+        resolucao: {
+            texto: 'Driver de áudio do equipamento atualizado e saída padrão reconfigurada para os alto-falantes da sala.',
+            horasAtras: 66,
+        },
         comments: [],
     },
 ];
@@ -152,6 +169,7 @@ export const seedDatabase = async (
     let usersInsertedOrUpdated = 0;
     let ticketsInserted = 0;
     let commentsInserted = 0;
+    let eventsInserted = 0;
 
     try {
         await client.query('BEGIN');
@@ -193,14 +211,27 @@ export const seedDatabase = async (
                 continue;
             }
 
-            const minutosAtras = String(Math.round(t.horasAtras * 60));
+            const minutos = (horas: number | undefined): string | null =>
+                horas === undefined ? null : String(Math.round(horas * 60));
+            const minutosAtras = minutos(t.horasAtras);
+            const atendimentoMinutos =
+                t.status === 'Aberto' ? null : minutos(t.atendimentoHorasAtras);
+            const resolucaoMinutos =
+                t.status === 'Resolvido' ? minutos(t.resolucao?.horasAtras ?? t.horasAtras) : null;
+            const resolucaoTexto = t.status === 'Resolvido' ? (t.resolucao?.texto ?? null) : null;
+            const resolvidoPorId = t.status === 'Resolvido' ? responsavelId : null;
+
             const ticketRes = await client.query<{ id: number }>(
                 `INSERT INTO tickets (
-                    user_id, title, description, status, priority, category, responsavel_id, created_at, updated_at
+                    user_id, title, description, status, priority, category, responsavel_id,
+                    created_at, updated_at, primeiro_atendimento_em, resolvido_em, resolvido_por_id, resolucao
                  ) VALUES (
                     $1, $2, $3, $4, $5, $6, $7,
-                    NOW() - ($8 || ' minutes')::interval,
-                    NOW() - ($8 || ' minutes')::interval
+                    NOW() - ($8::text || ' minutes')::interval,
+                    NOW() - (COALESCE($10::text, $9::text, $8::text) || ' minutes')::interval,
+                    NOW() - ($9::text || ' minutes')::interval,
+                    NOW() - ($10::text || ' minutes')::interval,
+                    $11, $12
                  ) RETURNING id`,
                 [
                     autorId,
@@ -211,12 +242,63 @@ export const seedDatabase = async (
                     t.category,
                     responsavelId,
                     minutosAtras,
+                    atendimentoMinutos,
+                    resolucaoMinutos,
+                    resolvidoPorId,
+                    resolucaoTexto,
                 ],
             );
 
             const ticketId = ticketRes.rows[0]?.id;
             if (!ticketId) continue;
             ticketsInserted += 1;
+
+            // Trilha de eventos coerente com os marcos do chamado.
+            const eventos: {
+                userId: number | null;
+                tipo: 'criado' | 'assumido' | 'resolvido';
+                anterior: TicketStatus | null;
+                novo: TicketStatus;
+                detalhe: string | null;
+                minutos: string | null;
+            }[] = [
+                {
+                    userId: autorId,
+                    tipo: 'criado',
+                    anterior: null,
+                    novo: 'Aberto',
+                    detalhe: null,
+                    minutos: minutosAtras,
+                },
+            ];
+            if (atendimentoMinutos) {
+                eventos.push({
+                    userId: responsavelId,
+                    tipo: 'assumido',
+                    anterior: 'Aberto',
+                    novo: 'Em andamento',
+                    detalhe: null,
+                    minutos: atendimentoMinutos,
+                });
+            }
+            if (resolucaoMinutos) {
+                eventos.push({
+                    userId: resolvidoPorId,
+                    tipo: 'resolvido',
+                    anterior: 'Em andamento',
+                    novo: 'Resolvido',
+                    detalhe: resolucaoTexto,
+                    minutos: resolucaoMinutos,
+                });
+            }
+            for (const e of eventos) {
+                await client.query(
+                    `INSERT INTO ticket_events (ticket_id, user_id, tipo, status_anterior, status_novo, detalhe, created_at)
+                     VALUES ($1, $2, $3, $4, $5, $6, NOW() - ($7 || ' minutes')::interval)`,
+                    [ticketId, e.userId, e.tipo, e.anterior, e.novo, e.detalhe, e.minutos],
+                );
+                eventsInserted += 1;
+            }
 
             for (const c of t.comments) {
                 const commentUserId = userIdsByEmail.get(c.autorEmail);
@@ -244,5 +326,6 @@ export const seedDatabase = async (
         users: usersInsertedOrUpdated,
         tickets: ticketsInserted,
         comments: commentsInserted,
+        events: eventsInserted,
     };
 };

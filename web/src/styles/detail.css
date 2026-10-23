@@ -161,3 +161,260 @@
     font-size: 18px;
   }
 }
+
+/* Workflow Stepper & Etapas de Atendimento (P2.2) */
+.workflow-stepper {
+  margin-bottom: 18px;
+}
+
+.workflow-stepper__badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+.workflow-stepper__badge strong {
+  color: var(--accent);
+}
+
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 8px;
+}
+
+.stepper__item {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.stepper__indicator {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  border: var(--hair) solid var(--hairline-strong);
+  background: var(--ground-2);
+  color: var(--ink-muted);
+  transition: all var(--t-fast) var(--ease-out);
+}
+
+.stepper__item--concluido .stepper__indicator {
+  background: color-mix(in srgb, var(--lamp-resolvido) 15%, transparent);
+  border-color: var(--lamp-resolvido);
+  color: var(--lamp-resolvido);
+}
+
+.stepper__item--ativo .stepper__indicator {
+  background: color-mix(in srgb, var(--lamp-laranja) 15%, transparent);
+  border-color: var(--lamp-laranja);
+  color: var(--lamp-laranja);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lamp-laranja) 20%, transparent);
+}
+
+.stepper__item--pendente .stepper__indicator {
+  opacity: 0.6;
+}
+
+.stepper__track {
+  flex: 0 0 32px;
+  height: 2px;
+  background: var(--hairline-strong);
+  margin-top: 12px;
+  border-radius: 1px;
+  transition: background var(--t-fast) var(--ease-out);
+}
+
+.stepper__track--ativo {
+  background: var(--lamp-resolvido);
+}
+
+.stepper__content {
+  min-width: 0;
+}
+
+.stepper__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  line-height: 1.3;
+}
+
+.stepper__tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ink-muted) 15%, transparent);
+  color: var(--ink-muted);
+}
+
+.stepper__tag--ativo {
+  background: color-mix(in srgb, var(--lamp-laranja) 15%, transparent);
+  color: var(--lamp-laranja);
+}
+
+.stepper__tag--sucesso {
+  background: color-mix(in srgb, var(--lamp-resolvido) 15%, transparent);
+  color: var(--lamp-resolvido);
+}
+
+.stepper__desc {
+  font-size: 12px;
+  color: var(--ink);
+  margin: 3px 0 2px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.stepper__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.stepper__tempo {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.workflow-stepper__solucao {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--lamp-resolvido) 8%, var(--ground-1));
+  border: var(--hair) solid color-mix(in srgb, var(--lamp-resolvido) 35%, transparent);
+}
+
+.workflow-stepper__solucao-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--lamp-resolvido);
+  margin-bottom: 6px;
+}
+
+.workflow-stepper__solucao-texto {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-strong);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Timeline Events na Thread de Atividades */
+.thread__historico-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.thread__event {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--ground-1);
+  border: var(--hair) solid var(--hairline);
+  border-left: 3px solid var(--accent);
+}
+
+.thread__event--criado {
+  border-left-color: var(--ink-muted);
+}
+.thread__event--assumido {
+  border-left-color: var(--lamp-laranja);
+}
+.thread__event--resolvido {
+  border-left-color: var(--lamp-resolvido);
+  background: color-mix(in srgb, var(--lamp-resolvido) 5%, var(--ground-1));
+}
+.thread__event--reaberto {
+  border-left-color: var(--lamp-vermelha);
+}
+.thread__event--devolvido {
+  border-left-color: var(--ink-muted);
+}
+
+.thread__event-indicator {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ground-2);
+  color: var(--ink);
+  margin-top: 1px;
+}
+
+.thread__event-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread__event-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.thread__event-title {
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
+.thread__event-author {
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+.thread__event-justificativa {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--ground-2);
+  border-left: 2px solid var(--lamp-resolvido);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .stepper {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .stepper__track {
+    display: none;
+  }
+}

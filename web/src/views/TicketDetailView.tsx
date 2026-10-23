@@ -6,10 +6,12 @@ import { corCategoria, corPrioridade, corStatus, Chip, Lamp, LampStatus } from '
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
 import { useToast } from '../components/Toast';
-import { tempoDecorrido, txHora } from '../lib/types';
+import { formatarIntervalo, tempoDecorrido } from '../lib/types';
 import type { Status } from '../lib/types';
 import { ThreadComentarios } from '../components/ThreadComentarios';
 import { Modal } from '../components/Modal';
+import { ModalResolucao } from '../components/ModalResolucao';
+import { WorkflowStepper } from '../components/WorkflowStepper';
 
 export function TicketDetailView() {
   const { id } = useParams();
@@ -17,13 +19,14 @@ export function TicketDetailView() {
   const tid = Number(id);
   const { user } = useAuth();
   const toast = useToast();
-  const { data, comentarios, error, loading, recarregar } = useChamado(tid);
+  const { data, comentarios, historico, error, loading, recarregar } = useChamado(tid);
 
   const [statusOtimista, setStatusOtimista] = useState<Status | null>(null);
   const [erroOtimista, setErroOtimista] = useState<string | null>(null);
 
   const [deletando, setDeletando] = useState(false);
   const [modalDeletarAberto, setModalDeletarAberto] = useState(false);
+  const [modalResolucaoAberto, setModalResolucaoAberto] = useState(false);
 
   const pode = podeResolver(user?.role);
 
@@ -37,7 +40,7 @@ export function TicketDetailView() {
     setErroOtimista(null);
   }, [recarregar]);
 
-  async function mudarStatus(novoStatus: Status) {
+  async function mudarStatus(novoStatus: Status, opcoes?: { resolucao?: string; motivo?: string }) {
     if (!data) return;
 
     const statusAnterior = data.status;
@@ -46,7 +49,7 @@ export function TicketDetailView() {
     setErroOtimista(null);
 
     try {
-      await atualizarStatus(data.id, novoStatus, user?.username);
+      await atualizarStatus(data.id, novoStatus, user?.username, opcoes);
       toast.sucesso(`Chamado #${data.id} em "${novoStatus}".`);
       void recarregarSync(); // resync silencioso
     } catch {
@@ -152,9 +155,23 @@ export function TicketDetailView() {
             ? (data.responsavel ?? user?.username ?? 'analista')
             : 'Aguardando triagem'}
         </UpdateBox>
-        <UpdateBox label="Aberto em">{txHora(data.created_at)}</UpdateBox>
-        <UpdateBox label="Espera">{tempoDecorrido(data.created_at)}</UpdateBox>
+        <UpdateBox label="1º Atendimento">
+          {data.primeiro_atendimento_em
+            ? formatarIntervalo(data.created_at, data.primeiro_atendimento_em)
+            : statusExibido === 'Aberto'
+              ? `${tempoDecorrido(data.created_at)} (espera)`
+              : '—'}
+        </UpdateBox>
+        <UpdateBox label="Tempo de Atendimento">
+          {data.resolvido_em
+            ? formatarIntervalo(data.created_at, data.resolvido_em)
+            : statusExibido === 'Em andamento'
+              ? `${tempoDecorrido(data.primeiro_atendimento_em ?? data.created_at)} (em curso)`
+              : 'Pendente'}
+        </UpdateBox>
       </div>
+
+      <WorkflowStepper chamado={data} statusAtual={statusExibido} />
 
       {erroOtimista && (
         <p className="field__error field__error--form" role="alert" style={{ marginBottom: 16 }}>
@@ -186,8 +203,13 @@ export function TicketDetailView() {
             </button>
           )}
           {pode && statusExibido === 'Em andamento' && (
-            <button className="btn btn--primario" onClick={() => mudarStatus('Resolvido')}>
+            <button className="btn btn--primario" onClick={() => setModalResolucaoAberto(true)}>
               <Icon name="check" size={15} /> Marcar resolvido
+            </button>
+          )}
+          {pode && statusExibido === 'Resolvido' && (
+            <button className="btn btn--fantasma" onClick={() => mudarStatus('Em andamento')}>
+              <Icon name="refresh" size={15} /> Reabrir atendimento
             </button>
           )}
           {user?.role === 'admin' && (
@@ -198,7 +220,19 @@ export function TicketDetailView() {
         </div>
       </section>
 
-      <ThreadComentarios id={data.id} comentarios={comentarios} aoEnviar={recarregarSync} />
+      <ThreadComentarios
+        id={data.id}
+        comentarios={comentarios}
+        historico={historico}
+        aoEnviar={recarregarSync}
+      />
+
+      <ModalResolucao
+        aberto={modalResolucaoAberto}
+        chamadoId={data.id}
+        aoFechar={() => setModalResolucaoAberto(false)}
+        aoConfirmar={async (resolucao) => await mudarStatus('Resolvido', { resolucao })}
+      />
 
       <Modal
         aberto={modalDeletarAberto}

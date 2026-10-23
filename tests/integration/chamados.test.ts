@@ -375,7 +375,7 @@ describe('PATCH /chamados/:id (status)', () => {
         const resposta = await agente
             .patch(`/chamados/${criado.id}`)
             .set(bearer(tokenAdm))
-            .send({ status: 'Resolvido' });
+            .send({ status: 'Resolvido', resolucao: 'Cabo de rede substituído e testado.' });
         expect(resposta.status).toBe(200);
         expect((resposta.body as { status: string }).status).toBe('Resolvido');
     });
@@ -402,7 +402,7 @@ describe('PATCH /chamados/:id (status)', () => {
         const resposta = await agente
             .patch('/chamados/99999')
             .set(bearer(tokenAna))
-            .send({ status: 'Resolvido' });
+            .send({ status: 'Resolvido', resolucao: 'Justificativa válida o bastante.' });
         expect(resposta.status).toBe(404);
     });
 
@@ -413,6 +413,50 @@ describe('PATCH /chamados/:id (status)', () => {
             .send({ status: 'Resolvido' });
         expect(resposta.status).toBe(400);
         expect(resposta.body).toEqual({ error: 'Identificador inválido' });
+    });
+
+    it('exige justificativa com no mínimo 10 caracteres ao marcar como Resolvido', async () => {
+        const criado = await criarChamadoDireto({ user_id: alice.id, title: 'Validar-Resolucao' });
+        const semJustificativa = await agente
+            .patch(`/chamados/${criado.id}`)
+            .set(bearer(tokenAna))
+            .send({ status: 'Resolvido' });
+        expect(semJustificativa.status).toBe(400);
+        expect(semJustificativa.body).toMatchObject({
+            error: 'Erro de validação',
+            detalhes: expect.arrayContaining([expect.objectContaining({ campo: 'resolucao' })]),
+        });
+
+        const curta = await agente
+            .patch(`/chamados/${criado.id}`)
+            .set(bearer(tokenAna))
+            .send({ status: 'Resolvido', resolucao: 'curta' });
+        expect(curta.status).toBe(400);
+
+        const valida = await agente.patch(`/chamados/${criado.id}`).set(bearer(tokenAna)).send({
+            status: 'Resolvido',
+            resolucao: 'Problema solucionado com reinstalação do driver.',
+        });
+        expect(valida.status).toBe(200);
+        expect((valida.body as { status: string; resolucao: string }).resolucao).toBe(
+            'Problema solucionado com reinstalação do driver.',
+        );
+    });
+
+    it('retorna 409 quando o chamado já se encontra no status solicitado', async () => {
+        const criado = await criarChamadoDireto({ user_id: alice.id, title: 'Conflito-Status' });
+        const primeiro = await agente
+            .patch(`/chamados/${criado.id}`)
+            .set(bearer(tokenAna))
+            .send({ status: 'Em andamento' });
+        expect(primeiro.status).toBe(200);
+
+        const repetido = await agente
+            .patch(`/chamados/${criado.id}`)
+            .set(bearer(tokenAdm))
+            .send({ status: 'Em andamento' });
+        expect(repetido.status).toBe(409);
+        expect((repetido.body as { error: string }).error).toContain('já está "Em andamento"');
     });
 });
 
@@ -589,5 +633,76 @@ describe('comentários (/chamados/:id/comentarios)', () => {
             .set(bearer(tokenAlice));
         expect(resposta.status).toBe(200);
         expect(resposta.body).toEqual([]);
+    });
+});
+
+describe('GET /chamados/:id/historico (trilha do workflow)', () => {
+    it('retorna a trilha completa em ordem cronológica com tipo, status, detalhe e autor', async () => {
+        // 1. Cria chamado via API (gera evento "criado")
+        const resCriar = await agente
+            .post('/chamados')
+            .set(bearer(tokenAlice))
+            .send(CHAMADO_VALIDO);
+        const ticketId = (resCriar.body as { id: number }).id;
+
+        // 2. Analista assume (gera evento "assumido")
+        await agente
+            .patch(`/chamados/${ticketId}`)
+            .set(bearer(tokenAna))
+            .send({ status: 'Em andamento' });
+
+        // 3. Analista resolve com justificativa (gera evento "resolvido")
+        await agente.patch(`/chamados/${ticketId}`).set(bearer(tokenAna)).send({
+            status: 'Resolvido',
+            resolucao: 'Toner substituído e página de teste impressa.',
+        });
+
+        // 4. Consulta a trilha
+        const resHist = await agente.get(`/chamados/${ticketId}/historico`).set(bearer(tokenAlice));
+
+        expect(resHist.status).toBe(200);
+        const eventos = resHist.body as {
+            tipo: string;
+            status_anterior: string | null;
+            status_novo: string;
+            detalhe: string | null;
+            autor: string;
+            perfil_do_autor: string;
+        }[];
+        expect(eventos).toHaveLength(3);
+        expect(eventos[0]).toMatchObject({
+            tipo: 'criado',
+            status_anterior: null,
+            status_novo: 'Aberto',
+            autor: 'alice.user',
+            perfil_do_autor: 'usuario',
+        });
+        expect(eventos[1]).toMatchObject({
+            tipo: 'assumido',
+            status_anterior: 'Aberto',
+            status_novo: 'Em andamento',
+            autor: 'ana.analista',
+            perfil_do_autor: 'analista',
+        });
+        expect(eventos[2]).toMatchObject({
+            tipo: 'resolvido',
+            status_anterior: 'Em andamento',
+            status_novo: 'Resolvido',
+            detalhe: 'Toner substituído e página de teste impressa.',
+            autor: 'ana.analista',
+            perfil_do_autor: 'analista',
+        });
+    });
+
+    it('bloqueia usuário comum de consultar histórico de chamado de outro usuário (404)', async () => {
+        const criado = await criarChamadoDireto({ user_id: alice.id, title: 'Secreto-Hist' });
+        const res = await agente.get(`/chamados/${criado.id}/historico`).set(bearer(tokenBob));
+        expect(res.status).toBe(404);
+    });
+
+    it('rejeita id inválido com 400', async () => {
+        const res = await agente.get('/chamados/abc/historico').set(bearer(tokenAna));
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: 'Identificador inválido' });
     });
 });

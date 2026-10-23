@@ -36,6 +36,7 @@ vi.mock('./lib/api', () => {
       excluirChamado: vi.fn(),
       comentar: vi.fn(),
       listarComentarios: vi.fn(),
+      listarHistorico: vi.fn(),
     },
   };
 });
@@ -115,6 +116,7 @@ beforeEach(() => {
   });
   vi.mocked(api.listarUsuarios).mockResolvedValue([]);
   vi.mocked(api.listarComentarios).mockResolvedValue([]);
+  vi.mocked(api.listarHistorico).mockResolvedValue([]);
   vi.mocked(api.logout).mockResolvedValue(undefined);
 });
 
@@ -320,6 +322,39 @@ describe('App — abertura e detalhe do chamado', () => {
 
     await waitFor(() => expect(api.atualizarStatus).toHaveBeenCalledWith(55, 'Em andamento'));
     expect(screen.queryByRole('button', { name: /Excluir chamado/ })).not.toBeInTheDocument();
+  });
+
+  it('analista resolve o chamado preenchendo a justificativa no modal', async () => {
+    const usuario = userEvent.setup();
+    vi.mocked(api.obterChamado).mockResolvedValue({
+      ...chamado(60, 'Em andamento'),
+      title: 'Impressora sem toner',
+    });
+    vi.mocked(api.atualizarStatus).mockResolvedValue({
+      ...chamado(60, 'Resolvido'),
+      resolucao: 'Cartucho de toner preto substituído.',
+    });
+
+    renderApp({ rota: '/chamados/60', usuario: mariana });
+
+    expect(
+      await screen.findByRole('heading', { name: 'Impressora sem toner' }),
+    ).toBeInTheDocument();
+    await usuario.click(screen.getByRole('button', { name: /Marcar resolvido/ }));
+
+    expect(screen.getByText('Concluir chamado #60')).toBeInTheDocument();
+    await usuario.type(
+      screen.getByLabelText(/Justificativa da resolução/),
+      'Cartucho de toner preto substituído.',
+    );
+    await usuario.click(screen.getByRole('button', { name: 'Confirmar resolução' }));
+
+    await waitFor(() =>
+      expect(api.atualizarStatus).toHaveBeenCalledWith(60, 'Resolvido', {
+        resolucao: 'Cartucho de toner preto substituído.',
+      }),
+    );
+    expect(await screen.findByText('Chamado #60 em "Resolvido".')).toBeInTheDocument();
   });
 
   it('admin exclui o chamado pelo modal e volta para a fila', async () => {

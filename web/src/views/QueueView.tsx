@@ -4,6 +4,7 @@ import { useAuth, podeResolver } from '../lib/auth';
 import { useChamados, atualizarStatus } from '../lib/data';
 import { QueueTable } from '../components/QueueTable';
 import { FilterSelect } from '../components/FilterSelect';
+import { ModalResolucao } from '../components/ModalResolucao';
 import { Lamp } from '../components/Lamp';
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
@@ -98,6 +99,7 @@ export function QueueView() {
   const [pagina, setPagina] = useState<number>(1);
   const [limite, setLimite] = useState<number>(50);
   const [atualizando, setAtualizando] = useState<number | null>(null);
+  const [chamadoParaResolver, setChamadoParaResolver] = useState<Chamado | null>(null);
   const [recarregandoManual, setRecarregandoManual] = useState(false);
 
   // Sincroniza quando o usuário pesquisa pelo SearchBox do cabeçalho (?q=...).
@@ -257,15 +259,35 @@ export function QueueView() {
   }
 
   async function mover(c: Chamado, novo: Status) {
+    if (novo === 'Resolvido') {
+      setChamadoParaResolver(c);
+      return;
+    }
     setAtualizando(c.id);
     try {
-      await atualizarStatus(c.id, novo);
+      await atualizarStatus(c.id, novo, user?.username);
       await recarregar();
       toast.sucesso(`Chamado #${c.id} em "${novo}".`);
     } catch {
       toast.erro(`Não foi possível atualizar o chamado #${c.id}.`);
     } finally {
       setAtualizando(null);
+    }
+  }
+
+  async function confirmarResolucaoFila(resolucao: string) {
+    if (!chamadoParaResolver) return;
+    const cid = chamadoParaResolver.id;
+    setAtualizando(cid);
+    try {
+      await atualizarStatus(cid, 'Resolvido', user?.username, { resolucao });
+      await recarregar();
+      toast.sucesso(`Chamado #${cid} em "Resolvido".`);
+    } catch {
+      toast.erro(`Não foi possível resolver o chamado #${cid}.`);
+    } finally {
+      setAtualizando(null);
+      setChamadoParaResolver(null);
     }
   }
 
@@ -554,6 +576,13 @@ export function QueueView() {
           </nav>
         </>
       )}
+
+      <ModalResolucao
+        aberto={!!chamadoParaResolver}
+        chamadoId={chamadoParaResolver?.id ?? 0}
+        aoFechar={() => setChamadoParaResolver(null)}
+        aoConfirmar={confirmarResolucaoFila}
+      />
     </div>
   );
 }

@@ -181,10 +181,45 @@ describe('createTicketSchema', () => {
 });
 
 describe('updateTicketStatusSchema', () => {
-    it('aceita os três status do fluxo', () => {
+    it('aceita os três status do fluxo (Resolvido com justificativa)', () => {
         expect(updateTicketStatusSchema.safeParse({ status: 'Aberto' }).success).toBe(true);
         expect(updateTicketStatusSchema.safeParse({ status: 'Em andamento' }).success).toBe(true);
-        expect(updateTicketStatusSchema.safeParse({ status: 'Resolvido' }).success).toBe(true);
+        expect(
+            updateTicketStatusSchema.safeParse({
+                status: 'Resolvido',
+                resolucao: 'Equipamento substituído.',
+            }).success,
+        ).toBe(true);
+    });
+
+    it('exige justificativa útil (≥ 10 caracteres, sem contar espaços nas pontas) ao resolver', () => {
+        for (const resolucao of [undefined, '', '   curta   ', '\0\0\0\0\0\0\0\0\0\0\0ok']) {
+            const parsed = updateTicketStatusSchema.safeParse({ status: 'Resolvido', resolucao });
+            expect(parsed.success).toBe(false);
+            if (!parsed.success) {
+                expect(parsed.error.issues[0]?.path).toEqual(['resolucao']);
+            }
+        }
+    });
+
+    it('sanitiza justificativa e motivo e limita o tamanho', () => {
+        const parsed = updateTicketStatusSchema.safeParse({
+            status: 'Resolvido',
+            resolucao: '  Driver\0 atualizado com sucesso.  ',
+        });
+        expect(parsed.success && parsed.data.resolucao).toBe('Driver atualizado com sucesso.');
+
+        expect(
+            updateTicketStatusSchema.safeParse({ status: 'Resolvido', resolucao: 'x'.repeat(1001) })
+                .success,
+        ).toBe(false);
+        expect(
+            updateTicketStatusSchema.safeParse({ status: 'Aberto', motivo: 'x'.repeat(501) })
+                .success,
+        ).toBe(false);
+        expect(
+            updateTicketStatusSchema.safeParse({ status: 'Aberto', motivo: ['injeção'] }).success,
+        ).toBe(false);
     });
 
     it('rejeita status fora do fluxo', () => {

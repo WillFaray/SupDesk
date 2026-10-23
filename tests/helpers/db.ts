@@ -20,7 +20,7 @@ export interface UsuarioTeste {
 /** Zera todas as tabelas (identidades reiniciadas → IDs determinísticos). */
 export const limparTabelas = async (): Promise<void> => {
     await pool.query(
-        'TRUNCATE ticket_comments, tickets, revoked_tokens, users RESTART IDENTITY CASCADE',
+        'TRUNCATE ticket_events, ticket_comments, tickets, revoked_tokens, users RESTART IDENTITY CASCADE',
     );
 };
 
@@ -83,9 +83,14 @@ export const criarChamadoDireto = async (dados: {
     criadoHaMinutos?: number;
 }): Promise<ChamadoTeste> => {
     const idade = String(dados.criadoHaMinutos ?? 0);
+    // Respeita chk_tickets_resolvido_em: status Resolvido ⇔ resolvido_em preenchido.
     const resultado = await pool.query<ChamadoTeste>(
-        `INSERT INTO tickets (user_id, title, description, status, priority, category, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW() - ($7 || ' minutes')::interval, NOW() - ($7 || ' minutes')::interval)
+        `INSERT INTO tickets (user_id, title, description, status, priority, category, created_at, updated_at, primeiro_atendimento_em, resolvido_em)
+         VALUES ($1, $2, $3, $4::varchar, $5, $6,
+                 NOW() - ($7 || ' minutes')::interval,
+                 NOW() - ($7 || ' minutes')::interval,
+                 CASE WHEN $4::varchar <> 'Aberto' THEN NOW() - ($7 || ' minutes')::interval END,
+                 CASE WHEN $4::varchar = 'Resolvido' THEN NOW() - ($7 || ' minutes')::interval END)
          RETURNING id, user_id, title, description, status, priority, category`,
         [
             dados.user_id,
