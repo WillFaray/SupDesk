@@ -129,13 +129,10 @@ describe('1. Cenários de concorrência real no PostgreSQL', () => {
                 .patch(`/chamados/${chamado.id}`)
                 .set(bearer(tokenAnalista1))
                 .send({ status: 'Em andamento' }),
-            agente
-                .patch(`/chamados/${chamado.id}`)
-                .set(bearer(tokenAnalista2))
-                .send({
-                    status: 'Resolvido',
-                    resolucao: 'Cache do servidor limpo e serviço reiniciado.',
-                }),
+            agente.patch(`/chamados/${chamado.id}`).set(bearer(tokenAnalista2)).send({
+                status: 'Resolvido',
+                resolucao: 'Cache do servidor limpo e serviço reiniciado.',
+            }),
             ...Array.from({ length: 6 }, (_, idx) =>
                 agente
                     .post(`/chamados/${chamado.id}/comentarios`)

@@ -9,6 +9,8 @@ import { Lamp } from '../components/Lamp';
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
 import { useToast } from '../components/Toast';
+import { EmptyState } from '../components/EmptyState';
+import { traduzirErro } from '../lib/feedback';
 import {
   calcularResumoChamados,
   filtrarChamadosTexto,
@@ -267,9 +269,18 @@ export function QueueView() {
     try {
       await atualizarStatus(c.id, novo, user?.username);
       await recarregar();
-      toast.sucesso(`Chamado #${c.id} em "${novo}".`);
+      toast.sucesso({
+        titulo: `Chamado #${c.id} em "${novo}".`,
+        mensagem:
+          novo === 'Em andamento'
+            ? 'Chamado assumido para atendimento.'
+            : 'Chamado movido para a triagem.',
+      });
     } catch {
-      toast.erro(`Não foi possível atualizar o chamado #${c.id}.`);
+      toast.erro({
+        titulo: `Não foi possível atualizar o chamado #${c.id}.`,
+        mensagem: 'Ocorreu uma falha na requisição. Tente novamente.',
+      });
     } finally {
       setAtualizando(null);
     }
@@ -282,9 +293,15 @@ export function QueueView() {
     try {
       await atualizarStatus(cid, 'Resolvido', user?.username, { resolucao });
       await recarregar();
-      toast.sucesso(`Chamado #${cid} em "Resolvido".`);
+      toast.sucesso({
+        titulo: `Chamado #${cid} em "Resolvido".`,
+        mensagem: 'Resolução registrada com justificativa.',
+      });
     } catch {
-      toast.erro(`Não foi possível resolver o chamado #${cid}.`);
+      toast.erro({
+        titulo: `Não foi possível resolver o chamado #${cid}.`,
+        mensagem: 'Falha ao registrar a resolução. Tente novamente.',
+      });
     } finally {
       setAtualizando(null);
       setChamadoParaResolver(null);
@@ -491,7 +508,22 @@ export function QueueView() {
         </div>
       )}
 
-      {error && (
+      {error && !data && (
+        <EmptyState
+          variante="erro"
+          icone="alert"
+          titulo="Erro ao carregar chamados"
+          descricao={traduzirErro(error).mensagem}
+          acaoPrimaria={{
+            label: 'Tentar novamente',
+            onClick: () => void recarregar(),
+            icone: 'refresh',
+            variante: 'primaria',
+          }}
+        />
+      )}
+
+      {error && data && (
         <p className="field__error" role="alert">
           <Icon name="alert" size={14} /> {error}
         </p>
@@ -500,25 +532,42 @@ export function QueueView() {
       {loading && !data && <Loading label="Carregando chamados…" />}
 
       {data && chamados.length === 0 && !loading && (
-        <div className="panel-empty">
-          <p>
-            <strong>Nenhum chamado</strong>
-          </p>
-          <p>Nada com este filtro.</p>
-          <p style={{ marginTop: 14, display: 'flex', gap: 8, justifyContent: 'center' }}>
-            {temFiltrosAtivos && (
-              <button className="btn btn--sm" onClick={limparFiltros}>
-                <Icon name="x" size={14} /> Limpar filtros
-              </button>
-            )}
-            <button
-              className="btn btn--primario btn--sm"
-              onClick={() => navigate('/chamados/novo')}
-            >
-              <Icon name="plus" size={14} /> Abrir chamado
-            </button>
-          </p>
-        </div>
+        <EmptyState
+          variante={termoBusca ? 'busca' : temFiltrosAtivos ? 'aviso' : 'padrao'}
+          icone={
+            termoBusca ? 'search' : aba === 'meus' ? 'user' : temFiltrosAtivos ? 'filter' : 'inbox'
+          }
+          titulo={termoBusca ? `Nenhum chamado encontrado para "${termoBusca}"` : 'Nenhum chamado'}
+          descricao={
+            termoBusca
+              ? 'Nada com este filtro. Tente buscar por outros termos, palavras-chave ou pelo número do ID.'
+              : aba === 'meus'
+                ? 'Nada com este filtro. Você não possui chamados sob sua responsabilidade ou abertos por você no momento.'
+                : temFiltrosAtivos
+                  ? 'Nada com este filtro. Não há chamados correspondentes aos filtros selecionados nesta visualização.'
+                  : 'A fila está vazia. Registre a primeira ocorrência para iniciar o fluxo de suporte.'
+          }
+          dica={
+            termoBusca
+              ? 'Dica: a busca contempla o título, a descrição, o nome do autor e o número #ID.'
+              : undefined
+          }
+          acaoPrimaria={{
+            label: 'Abrir chamado',
+            onClick: () => navigate('/chamados/novo'),
+            icone: 'plus',
+            variante: 'primaria',
+          }}
+          acaoSecundaria={
+            temFiltrosAtivos
+              ? {
+                  label: 'Limpar filtros',
+                  onClick: limparFiltros,
+                  icone: 'x',
+                }
+              : undefined
+          }
+        />
       )}
 
       {data && chamados.length > 0 && (

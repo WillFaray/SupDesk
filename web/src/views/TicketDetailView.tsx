@@ -6,6 +6,7 @@ import { corCategoria, corPrioridade, corStatus, Chip, Lamp, LampStatus } from '
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
 import { useToast } from '../components/Toast';
+import { EmptyState } from '../components/EmptyState';
 import { formatarIntervalo, tempoDecorrido } from '../lib/types';
 import type { Status } from '../lib/types';
 import { ThreadComentarios } from '../components/ThreadComentarios';
@@ -50,12 +51,25 @@ export function TicketDetailView() {
 
     try {
       await atualizarStatus(data.id, novoStatus, user?.username, opcoes);
-      toast.sucesso(`Chamado #${data.id} em "${novoStatus}".`);
+      toast.sucesso({
+        titulo: `Chamado #${data.id} em "${novoStatus}".`,
+        mensagem:
+          novoStatus === 'Resolvido'
+            ? 'Resolução e justificativa registradas no histórico.'
+            : novoStatus === 'Em andamento'
+              ? statusAnterior === 'Resolvido'
+                ? 'Atendimento reaberto e fluxo retomado.'
+                : 'Atendimento iniciado sob sua responsabilidade.'
+              : 'Status do chamado atualizado com sucesso.',
+      });
       void recarregarSync(); // resync silencioso
     } catch {
       setStatusOtimista(null);
       setErroOtimista(`Não foi possível atualizar o status. Revertido para "${statusAnterior}".`);
-      toast.erro('Não foi possível atualizar o status do chamado.');
+      toast.erro({
+        titulo: 'Não foi possível atualizar o status do chamado.',
+        mensagem: 'Ocorreu uma falha no servidor ou conflito de concorrência. Tente novamente.',
+      });
     }
   }
 
@@ -74,7 +88,10 @@ export function TicketDetailView() {
 
     try {
       await excluirChamado(data.id);
-      toast.sucesso(`Chamado #${data.id} excluído.`);
+      toast.sucesso({
+        titulo: `Chamado #${data.id} excluído.`,
+        mensagem: 'O chamado foi removido permanentemente da base.',
+      });
       fecharModalDeletar();
       navigate('/chamados', { replace: true });
     } catch {
@@ -89,18 +106,35 @@ export function TicketDetailView() {
   }
 
   if (error && !data) {
+    const is404 =
+      error.toLowerCase().includes('não encontrado') || error.toLowerCase().includes('404');
     return (
-      <div className="panel-empty">
-        <Icon name="alert" size={28} />
-        <p>
-          <strong>{error}</strong>
-        </p>
-        <p>
-          <button className="btn" onClick={() => navigate('/chamados')}>
-            Voltar à fila
-          </button>
-        </p>
-      </div>
+      <EmptyState
+        variante={is404 ? 'padrao' : 'erro'}
+        icone={is404 ? 'search' : 'alert'}
+        titulo={error}
+        descricao={
+          is404
+            ? `O chamado #${tid} não foi encontrado. O registro pode ter sido excluído ou seu usuário não possui permissão para acessá-lo.`
+            : 'Não foi possível carregar os dados deste chamado do servidor.'
+        }
+        dica={is404 ? 'Verifique se o identificador digitado na URL está correto.' : undefined}
+        acaoPrimaria={{
+          label: 'Voltar à fila',
+          onClick: () => navigate('/chamados'),
+          icone: 'arrowLeft',
+          variante: 'primaria',
+        }}
+        acaoSecundaria={
+          !is404
+            ? {
+                label: 'Tentar novamente',
+                onClick: () => void recarregar(),
+                icone: 'refresh',
+              }
+            : undefined
+        }
+      />
     );
   }
 

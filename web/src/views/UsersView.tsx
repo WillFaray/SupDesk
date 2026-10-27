@@ -1,6 +1,7 @@
 import { useUsuarios } from '../lib/data';
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
+import { EmptyState } from '../components/EmptyState';
 import { txDate } from '../lib/types';
 export function UsersView() {
   const { data, error, loading } = useUsuarios();
@@ -16,7 +17,22 @@ export function UsersView() {
         </div>
       </div>
 
-      {error && (
+      {error && !data && (
+        <EmptyState
+          variante="erro"
+          icone="alert"
+          titulo="Erro ao carregar usuários"
+          descricao={error}
+          acaoPrimaria={{
+            label: 'Recarregar página',
+            onClick: () => window.location.reload(),
+            icone: 'refresh',
+            variante: 'primaria',
+          }}
+        />
+      )}
+
+      {error && data && (
         <p className="field__error" role="alert">
           <Icon name="alert" size={14} /> {error}
         </p>

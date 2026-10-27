@@ -5,6 +5,7 @@ import { corCategoria, corPrioridade, Lamp } from '../components/Lamp';
 import { Icon } from '../components/Icon';
 import { Spinner } from '../components/Loading';
 import { useToast } from '../components/Toast';
+import { traduzirErro } from '../lib/feedback';
 import type { Categoria, Prioridade } from '../lib/types';
 
 const PRIORIDADES: Prioridade[] = ['Baixa', 'Média', 'Alta'];
@@ -15,6 +16,8 @@ type CampoErro = { titulo?: string; descricao?: string };
 function validarFormulario(titulo: string, descricao: string): CampoErro {
   const e: CampoErro = {};
   if (!titulo.trim()) e.titulo = 'Título é obrigatório.';
+  else if (titulo.trim().length < 3) e.titulo = 'Título deve ter no mínimo 3 caracteres.';
+
   if (descricao.trim().length < 10) e.descricao = 'Descrição deve ter ao menos 10 caracteres.';
   return e;
 }
@@ -30,6 +33,8 @@ export function NewTicketView() {
   const [camposErro, setCamposErro] = useState<CampoErro>({});
   const [tocados, setTocados] = useState<Record<string, boolean>>({});
   const [enviando, setEnviando] = useState(false);
+
+  const temRascunho = Boolean(title.trim() || description.trim());
 
   function tocar(campo: string) {
     setTocados((p) => ({ ...p, [campo]: true }));
@@ -70,8 +75,19 @@ export function NewTicketView() {
       toast.sucesso(`Chamado #${c.id} aberto.`);
       navigate(`/chamados/${c.id}`);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha ao abrir chamado');
-      toast.erro('Não foi possível abrir o chamado.');
+      const traduzido = traduzirErro(e);
+      setErro(traduzido.mensagem);
+      if (traduzido.campos) {
+        setCamposErro((ant) => ({
+          ...ant,
+          ...(traduzido.campos?.title ? { titulo: traduzido.campos.title } : {}),
+          ...(traduzido.campos?.description ? { descricao: traduzido.campos.description } : {}),
+        }));
+      }
+      toast.erro({
+        titulo: traduzido.titulo,
+        mensagem: traduzido.mensagem,
+      });
     } finally {
       setEnviando(false);
     }
@@ -89,7 +105,14 @@ export function NewTicketView() {
 
       <div className="page-head">
         <div>
-          <h1 className="page-head__title">Novo chamado</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 className="page-head__title">Novo chamado</h1>
+            {temRascunho && (
+              <span className="draft-badge" title="Você tem alterações não enviadas">
+                <Icon name="edit" size={11} /> Rascunho não salvo
+              </span>
+            )}
+          </div>
           <p className="page-head__sub">Registro de ocorrência no painel</p>
         </div>
       </div>
@@ -99,8 +122,21 @@ export function NewTicketView() {
           <span className="instrument__title">
             <Icon name="plus" size={13} /> Ocorrência
           </span>
+          <span className="u-mono" style={{ fontSize: 11, color: 'var(--ink-muted)' }}>
+            Campos com * são obrigatórios
+          </span>
         </div>
         <div className="instrument__body">
+          {erro && (
+            <div className="rejected-banner" role="alert">
+              <Icon name="alert" size={16} />
+              <div>
+                <strong>Abertura rejeitada pelo servidor</strong>
+                <p>{erro}</p>
+              </div>
+            </div>
+          )}
+
           <div className="field">
             <label className="field__label" htmlFor="n_titulo">
               Título <span>*</span>
@@ -114,10 +150,16 @@ export function NewTicketView() {
               onChange={(e) => aoDigitarTitulo(e.target.value)}
               onBlur={() => aoBlur('titulo')}
               maxLength={100}
-              placeholder="Resumo do problema em uma linha"
+              placeholder="Ex.: Sem acesso ao e-mail corporativo no setor financeiro"
               aria-invalid={!!(tocados.titulo && camposErro.titulo)}
-              aria-describedby={tocados.titulo && camposErro.titulo ? 'titulo-erro' : undefined}
+              aria-describedby={tocados.titulo && camposErro.titulo ? 'titulo-erro' : 'titulo-hint'}
             />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="field__hint" id="titulo-hint">
+                Resumo claro e objetivo do problema (mínimo 3 caracteres)
+              </span>
+              <span className="field__hint u-mono">{title.length}/100</span>
+            </div>
             {tocados.titulo && camposErro.titulo && (
               <p className="field__error field__error--inline" id="titulo-erro" role="alert">
                 <Icon name="alert" size={13} /> {camposErro.titulo}
@@ -139,13 +181,25 @@ export function NewTicketView() {
               onChange={(e) => aoDigitarDescricao(e.target.value)}
               onBlur={() => aoBlur('descricao')}
               maxLength={1000}
-              placeholder="O que aconteceu, quando começou, o que você já tentou…"
+              placeholder="O que aconteceu, quando começou, computadores/usuários afetados e o que você já tentou…"
               aria-invalid={!!(tocados.descricao && camposErro.descricao)}
               aria-describedby={
-                tocados.descricao && camposErro.descricao ? 'descricao-erro' : undefined
+                tocados.descricao && camposErro.descricao ? 'descricao-erro' : 'descricao-hint'
               }
             />
-            <span className="field__hint u-mono">{description.length}/1000</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span className="field__hint" id="descricao-hint">
+                Detalhes técnicos, mensagens de erro e passos para reproduzir
+              </span>
+              <span
+                className="field__hint u-mono"
+                style={{
+                  color: description.length < 10 ? 'var(--lamp-laranja)' : undefined,
+                }}
+              >
+                {description.length}/1000 (mín. 10)
+              </span>
+            </div>
             {tocados.descricao && camposErro.descricao && (
               <p className="field__error field__error--inline" id="descricao-erro" role="alert">
                 <Icon name="alert" size={13} /> {camposErro.descricao}
@@ -173,6 +227,9 @@ export function NewTicketView() {
                 </button>
               ))}
             </div>
+            <span className="field__hint">
+              Defina &ldquo;Alta&rdquo; apenas para bloqueios operacionais ou paralisações de setor.
+            </span>
           </div>
 
           <div className="field">
@@ -197,19 +254,13 @@ export function NewTicketView() {
             </div>
           </div>
 
-          {erro && (
-            <p className="field__error field__error--form" role="alert">
-              <Icon name="alert" size={14} /> {erro}
-            </p>
-          )}
-
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
             <button className="btn" onClick={() => navigate('/chamados')}>
               Cancelar
             </button>
             <button className="btn btn--primario" disabled={enviando} onClick={onSubmit}>
               {enviando ? <Spinner size={15} /> : <Icon name="send" size={15} />}{' '}
-              {enviando ? 'Abrindo…' : 'Abrir chamado'}
+              {enviando ? 'Abrindo chamado…' : 'Abrir chamado'}
             </button>
           </div>
         </div>

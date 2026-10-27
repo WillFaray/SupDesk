@@ -482,3 +482,145 @@
     animation: none;
   }
 }
+
+/* =============================================================================
+   Estados Vazios e Painéis de Ajuda (P2.3)
+   ============================================================================= */
+.empty-state {
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--ground-1);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--ink-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0;
+  transition: border-color var(--t-fast) var(--ease-out);
+}
+
+.empty-state__icon-wrap {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ground-0);
+  border: var(--hair) solid var(--hairline-strong);
+  color: var(--ink-muted);
+  margin-bottom: 14px;
+}
+
+.empty-state--busca .empty-state__icon-wrap {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+
+.empty-state--erro {
+  border-color: color-mix(in srgb, var(--lamp-vermelha) 30%, transparent);
+  background: color-mix(in srgb, var(--lamp-vermelha) 3%, var(--ground-1));
+}
+.empty-state--erro .empty-state__icon-wrap {
+  color: var(--lamp-vermelha);
+  background: color-mix(in srgb, var(--lamp-vermelha) 10%, transparent);
+  border-color: color-mix(in srgb, var(--lamp-vermelha) 30%, transparent);
+}
+
+.empty-state--aviso .empty-state__icon-wrap {
+  color: var(--lamp-laranja);
+  background: color-mix(in srgb, var(--lamp-laranja) 10%, transparent);
+}
+
+.empty-state--sucesso .empty-state__icon-wrap {
+  color: var(--lamp-resolvido);
+  background: color-mix(in srgb, var(--lamp-resolvido) 10%, transparent);
+}
+
+.empty-state__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink-strong);
+  margin: 0 0 8px;
+  max-width: 440px;
+}
+
+.empty-state__desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  max-width: 480px;
+  margin: 0 0 16px;
+}
+
+.empty-state__tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-muted);
+  background: var(--ground-0);
+  border: var(--hair) solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  margin-bottom: 16px;
+}
+
+.empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Badge de rascunho / status de alteração */
+.draft-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--lamp-laranja) 12%, transparent);
+  color: var(--lamp-laranja);
+  border: var(--hair) solid color-mix(in srgb, var(--lamp-laranja) 25%, transparent);
+}
+
+/* Banner de ação rejeitada / aviso de falha */
+.rejected-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--lamp-vermelha) 8%, transparent);
+  border: var(--hair) solid color-mix(in srgb, var(--lamp-vermelha) 20%, transparent);
+  color: var(--ink-strong);
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.rejected-banner .ic {
+  color: var(--lamp-vermelha);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.rejected-banner strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.rejected-banner p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+.rejected-banner__btn {
+  margin-left: auto;
+  align-self: center;
+  white-space: nowrap;
+}

@@ -14,8 +14,24 @@ function Disparador() {
       <button onClick={() => toast.erro('Falha na operação')} type="button">
         disparar-erro
       </button>
+      <button onClick={() => toast.alerta('Atenção: verifique os dados')} type="button">
+        disparar-alerta
+      </button>
       <button onClick={() => toast.info('Dica do dia')} type="button">
         disparar-info
+      </button>
+      <button
+        onClick={() =>
+          toast.sucesso({
+            titulo: 'Chamado #42 criado',
+            mensagem: 'Registro salvo com sucesso',
+            detalhe: 'Encaminhado para a fila de triagem.',
+            acao: { label: 'Desfazer', onClick: vi.fn() },
+          })
+        }
+        type="button"
+      >
+        disparar-rico
       </button>
     </div>
   );
@@ -55,6 +71,41 @@ describe('ToastProvider', () => {
     renderToasts();
     fireEvent.click(screen.getByText('disparar-info'));
     expect(screen.getByText('Dica do dia')).toBeInTheDocument();
+  });
+
+  it('exibe toast de alerta com mensagem e ícone apropriado', () => {
+    renderToasts();
+    fireEvent.click(screen.getByText('disparar-alerta'));
+    expect(screen.getByText('Atenção: verifique os dados')).toBeInTheDocument();
+  });
+
+  it('exibe toast com opções ricas: título, mensagem, detalhe e botão de ação', () => {
+    renderToasts();
+    fireEvent.click(screen.getByText('disparar-rico'));
+    expect(screen.getByText('Chamado #42 criado')).toBeInTheDocument();
+    expect(screen.getByText('Registro salvo com sucesso')).toBeInTheDocument();
+    expect(screen.getByText('Encaminhado para a fila de triagem.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Desfazer' })).toBeInTheDocument();
+  });
+
+  it('pausa o fechamento automático ao passar o mouse por cima', () => {
+    renderToasts();
+    fireEvent.click(screen.getByText('disparar-sucesso'));
+    const toastCard = screen.getByRole('status');
+
+    fireEvent.mouseEnter(toastCard);
+
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    // Não deve sumir enquanto o mouse estiver sobre o toast
+    expect(screen.getByText('Chamado criado!')).toBeInTheDocument();
+
+    fireEvent.mouseLeave(toastCard);
+    act(() => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(screen.queryByText('Chamado criado!')).not.toBeInTheDocument();
   });
 
   it('fecha manualmente pelo botão X', () => {

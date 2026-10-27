@@ -128,12 +128,19 @@ export function ThreadComentarios({
 
     try {
       await comentarChamado(id, otimista.message);
-      toast.sucesso('Comentário registrado.');
+      toast.sucesso({
+        titulo: 'Comentário registrado.',
+        mensagem: 'Sua mensagem foi adicionada ao histórico do chamado.',
+      });
       await aoEnviar();
     } catch {
       setComentarioOtimista(null);
+      setMsg('');
       setErroOtimista('Não foi possível registrar o comentário. Tente novamente.');
-      toast.erro('Não foi possível registrar o comentário.');
+      toast.erro({
+        titulo: 'Não foi possível registrar o comentário.',
+        mensagem: 'Ocorreu uma falha na requisição. Tente novamente.',
+      });
     } finally {
       setEnviando(false);
     }
@@ -238,13 +245,13 @@ export function ThreadComentarios({
           })}
 
           {erroOtimista && (
-            <p
-              className="field__error field__error--form"
-              role="alert"
-              style={{ marginBottom: 16 }}
-            >
-              <Icon name="alert" size={14} /> {erroOtimista}
-            </p>
+            <div className="rejected-banner" role="alert" style={{ marginBottom: 12 }}>
+              <Icon name="alert" size={16} />
+              <div>
+                <strong>Não foi possível registrar o comentário. Tente novamente.</strong>
+                <p>O texto digitado foi preservado no campo abaixo para nova tentativa.</p>
+              </div>
+            </div>
           )}
 
           <div style={{ marginTop: 8 }}>
@@ -255,11 +262,25 @@ export function ThreadComentarios({
               value={msg}
               onChange={(e) => aoDigitar(e.target.value)}
               onBlur={() => aoBlur()}
-              placeholder="Escreva uma atualização para este chamado…"
+              placeholder="Escreva uma atualização ou informação adicional para este chamado…"
               aria-label="Nova mensagem no chamado"
               aria-invalid={!!(tocado && camposErro.msg)}
-              aria-describedby={tocado && camposErro.msg ? 'msg-erro' : undefined}
+              aria-describedby={tocado && camposErro.msg ? 'msg-erro' : 'msg-hint'}
+              maxLength={500}
             />
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginTop: 4,
+              }}
+            >
+              <span className="field__hint" id="msg-hint">
+                Visível para o solicitante e operadores de suporte (máx. 500 caracteres)
+              </span>
+              <span className="field__hint u-mono">{msg.length}/500</span>
+            </div>
             {tocado && camposErro.msg && (
               <p className="field__error field__error--inline" id="msg-erro" role="alert">
                 <Icon name="alert" size={13} /> {camposErro.msg}

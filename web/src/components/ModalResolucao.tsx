@@ -127,7 +127,9 @@ export function ModalResolucao({ aberto, chamadoId, aoFechar, aoConfirmar }: Mod
               <Icon name="alert" size={12} /> {erro}
             </p>
           ) : (
-            <span style={{ color: 'var(--ink-muted)' }}>Mínimo 10 caracteres</span>
+            <span style={{ color: 'var(--ink-muted)' }}>
+              Mínimo 10 caracteres (descreva a causa e a solução técnica)
+            </span>
           )}
           <span
             id="contador-resolucao"

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { useChamados, listarComentarios } from '../lib/data';
 import { corPrioridade, Lamp } from '../components/Lamp';
 import { FilterSelect } from '../components/FilterSelect';
 import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
+import { EmptyState } from '../components/EmptyState';
 import {
   chamadoAtrasado,
   filtrarChamadosTexto,
@@ -32,6 +33,7 @@ function espera(from: string): string {
 }
 
 export function BoardView() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data, error, loading } = useChamados({ status: 'Em andamento', limit: 100 });
   const [chats, setChats] = useState<Record<number, Comentario[]>>({});
@@ -150,7 +152,22 @@ export function BoardView() {
         </section>
       )}
 
-      {error && (
+      {error && !data && (
+        <EmptyState
+          variante="erro"
+          icone="alert"
+          titulo="Erro ao carregar o painel"
+          descricao="Não foi possível obter a lista de chamados em andamento do servidor."
+          acaoPrimaria={{
+            label: 'Ir para a fila',
+            onClick: () => navigate('/chamados'),
+            icone: 'queue',
+            variante: 'primaria',
+          }}
+        />
+      )}
+
+      {error && data && (
         <p className="field__error" role="alert">
           <Icon name="alert" size={14} /> {error}
         </p>
@@ -159,13 +176,19 @@ export function BoardView() {
       {loading && !data && <Loading label="Carregando painel…" />}
 
       {data && meus.length === 0 && !loading && (
-        <div className="panel-empty">
-          <Icon name="check" size={28} />
-          <p>
-            <strong>Nada em andamento</strong>
-          </p>
-          <p>Nenhum chamado em andamento com você como responsável ou autor.</p>
-        </div>
+        <EmptyState
+          variante="sucesso"
+          icone="check"
+          titulo="Nada em andamento"
+          descricao="Nenhum chamado em andamento com você como responsável ou autor."
+          dica="Assim que você assumir um chamado na fila geral, ele aparecerá organizado aqui por prioridade."
+          acaoPrimaria={{
+            label: 'Ir para a fila geral',
+            onClick: () => navigate('/chamados'),
+            icone: 'queue',
+            variante: 'primaria',
+          }}
+        />
       )}
 
       {data && meus.length > 0 && (

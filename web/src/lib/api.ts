@@ -62,27 +62,38 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     let message = `Erro ${res.status}`;
+    let detalhes: ErroDetalhe[] | undefined;
     try {
       const body = await res.json();
       message =
         (body as { error?: string; message?: string }).error ||
         (body as { message?: string }).message ||
         message;
+      if (Array.isArray((body as { detalhes?: unknown }).detalhes)) {
+        detalhes = (body as { detalhes: ErroDetalhe[] }).detalhes;
+      }
     } catch {
       /* corpo não-JSON */
     }
-    throw new ApiError(message, res.status);
+    throw new ApiError(message, res.status, detalhes);
   }
   if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
+export interface ErroDetalhe {
+  campo?: string;
+  erro: string;
+}
+
 export class ApiError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  detalhes?: ErroDetalhe[];
+  constructor(message: string, status: number, detalhes?: ErroDetalhe[]) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.detalhes = detalhes;
   }
 }
 
