@@ -61,13 +61,13 @@ export const getMe = async (
 };
 
 export const listUsers = async (
-    req: AuthRequest,
+    _req: AuthRequest,
     res: express.Response,
     next: express.NextFunction,
 ): Promise<void> => {
     try {
         const result = await pool.query<UserPublicRow>(
-            'SELECT id, username, email, role, created_at FROM users',
+            'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC, id ASC',
         );
         res.status(200).json(result.rows);
     } catch (error) {

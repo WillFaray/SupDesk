@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Modal } from './Modal';
 import { Icon } from './Icon';
 
@@ -15,14 +15,13 @@ export function ModalResolucao({ aberto, chamadoId, aoFechar, aoConfirmar }: Mod
   const [carregando, setCarregando] = useState(false);
   const [tocado, setTocado] = useState(false);
 
-  useEffect(() => {
-    if (aberto) {
-      setResolucao('');
-      setErro(null);
-      setTocado(false);
-      setCarregando(false);
-    }
-  }, [aberto]);
+  function fechar() {
+    setResolucao('');
+    setErro(null);
+    setTocado(false);
+    setCarregando(false);
+    aoFechar();
+  }
 
   function validar(texto: string): string | null {
     const limpo = texto.trim();
@@ -55,7 +54,7 @@ export function ModalResolucao({ aberto, chamadoId, aoFechar, aoConfirmar }: Mod
     setCarregando(true);
     try {
       await aoConfirmar(resolucao.trim());
-      aoFechar();
+      fechar();
     } catch {
       setErro('Não foi possível registrar a resolução. Tente novamente.');
     } finally {
@@ -68,7 +67,7 @@ export function ModalResolucao({ aberto, chamadoId, aoFechar, aoConfirmar }: Mod
   return (
     <Modal
       aberto={aberto}
-      aoFechar={aoFechar}
+      aoFechar={fechar}
       titulo={`Concluir chamado #${chamadoId}`}
       descricao="Descreva a ação técnica realizada e a solução aplicada para resolver este chamado."
       acaoPrimaria={{
@@ -79,7 +78,7 @@ export function ModalResolucao({ aberto, chamadoId, aoFechar, aoConfirmar }: Mod
       }}
       acaoSecundaria={{
         label: 'Cancelar',
-        onClick: aoFechar,
+        onClick: fechar,
       }}
     >
       <div style={{ marginTop: 12 }}>

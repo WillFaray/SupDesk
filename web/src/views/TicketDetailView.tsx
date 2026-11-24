@@ -163,6 +163,9 @@ export function TicketDetailView() {
               Prioridade {data.priority}
             </span>
             <Chip cor={corCategoria[data.category]}>{data.category}</Chip>
+            <span aria-hidden="true" style={{ color: 'var(--ink-faint)' }}>
+              ·
+            </span>
             <span className="u-mono" style={{ color: 'var(--ink-muted)', fontSize: 12 }}>
               aberto por {data.autor_do_chamado}
             </span>
@@ -242,7 +245,7 @@ export function TicketDetailView() {
             </button>
           )}
           {pode && statusExibido === 'Resolvido' && (
-            <button className="btn btn--fantasma" onClick={() => mudarStatus('Em andamento')}>
+            <button className="btn" onClick={() => mudarStatus('Em andamento')}>
               <Icon name="refresh" size={15} /> Reabrir atendimento
             </button>
           )}
@@ -292,12 +295,7 @@ function UpdateBox({ label, children }: { label: string; children: React.ReactNo
   return (
     <div className="detail__update">
       <div className="detail__update-label">{label}</div>
-      <div
-        className="detail__update-value"
-        style={{ display: 'flex', alignItems: 'center', gap: 8 }}
-      >
-        {children}
-      </div>
+      <div className="detail__update-value">{children}</div>
     </div>
   );
 }

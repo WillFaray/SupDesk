@@ -116,6 +116,7 @@ describe('normalizeRoutePath e métricas operacionais', () => {
         expect(normalizeRoutePath('/chamados/42/comentarios?foo=bar')).toBe(
             '/chamados/:id/comentarios',
         );
+        expect(normalizeRoutePath('/chamados/42/historico')).toBe('/chamados/:id/historico');
         expect(normalizeRoutePath('/usuarios/me/')).toBe('/usuarios/me');
     });
 

@@ -20,6 +20,7 @@
   /* Pontos chapados: azul amarra no acento, demais na mesma luminosidade */
   --lamp-aberto: var(--accent);
   --lamp-andamento: #c9884a;
+  --lamp-laranja: var(--lamp-andamento);
   --lamp-resolvido: #3f9e6e;
   --lamp-vermelha: #d15b52;
   --lamp-apagada: #c3cad4;
@@ -73,6 +74,7 @@
 
   --lamp-aberto: var(--accent);
   --lamp-andamento: #d9a662;
+  --lamp-laranja: var(--lamp-andamento);
   --lamp-resolvido: #6cbf90;
   --lamp-vermelha: #e07a70;
   --lamp-apagada: #454c56;

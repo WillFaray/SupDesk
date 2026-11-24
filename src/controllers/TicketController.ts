@@ -25,6 +25,24 @@ const paramId = (value: unknown): number | undefined => parsePositiveIntId(value
 
 const escapeLike = (term: string): string => term.replace(/[\\%_]/g, '\\$&');
 
+/**
+ * Verifica se o chamado existe e está no escopo do usuário (usuário comum só
+ * acessa os próprios chamados; analista/admin acessam qualquer chamado).
+ */
+const verificarAcessoChamado = async (
+    ticketId: number,
+    userId: number,
+    role: string,
+): Promise<boolean> => {
+    const query =
+        role === 'usuario'
+            ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
+            : 'SELECT id FROM tickets WHERE id = $1';
+    const values = role === 'usuario' ? [ticketId, userId] : [ticketId];
+    const check = await pool.query<{ id: number }>(query, values);
+    return Boolean(check.rowCount);
+};
+
 type SortByField = 'created_at' | 'priority' | 'status' | 'updated_at';
 type SortDirection = 'asc' | 'desc';
 
@@ -175,8 +193,6 @@ export const listTickets = async (
         const listQuery = `SELECT tickets.id, tickets.title, tickets.description, tickets.status, tickets.priority, tickets.category, tickets.created_at, tickets.updated_at, autor.username AS autor_do_chamado, responsavel.username AS responsavel ${baseFrom}${whereClause} ORDER BY ${orderByClause} LIMIT $${valueIndex++} OFFSET $${valueIndex++}`;
         const listValues = [...filterValues, limit, offset];
 
-        const countQuery = `SELECT COUNT(*)::int AS total ${baseFrom}${whereClause}`;
-
         const scopeWhere = role === 'usuario' ? 'WHERE tickets.user_id = $1' : '';
         const scopeValues = role === 'usuario' ? [id] : [];
         const summaryQuery = `
@@ -190,9 +206,12 @@ export const listTickets = async (
             ${scopeWhere}
         `;
 
-        const [result, countResult, summaryResult] = await Promise.all([
+        const hasExtraFilter = Boolean(status || priority || category || rawSearch);
+        const countFrom = rawSearch ? baseFrom : 'FROM tickets WHERE 1=1';
+        const countQuery = `SELECT COUNT(*)::int AS total ${countFrom}${whereClause}`;
+
+        const [result, summaryResult, countResult] = await Promise.all([
             pool.query<TicketListItemRow>(listQuery, listValues),
-            pool.query<{ total: number }>(countQuery, filterValues),
             pool.query<{
                 total: number;
                 abertos: number;
@@ -200,11 +219,15 @@ export const listTickets = async (
                 resolvidos: number;
                 alta_prioridade: number;
             }>(summaryQuery, scopeValues),
+            hasExtraFilter
+                ? pool.query<{ total: number }>(countQuery, filterValues)
+                : Promise.resolve(null),
         ]);
 
-        const total = countResult.rows[0]?.total ?? result.rows.length;
-        const totalPaginas = Math.max(1, Math.ceil(total / limit));
         const sumRow = summaryResult.rows[0];
+        const total =
+            (hasExtraFilter ? countResult?.rows[0]?.total : sumRow?.total) ?? result.rows.length;
+        const totalPaginas = Math.max(1, Math.ceil(total / limit));
 
         res.status(200).json({
             paginaAtual: page,
@@ -341,14 +364,7 @@ export const adicionarComentario = async (
         const { id: userId, role } = claims;
         const { message } = req.body;
 
-        const ticketCheckQuery =
-            role === 'usuario'
-                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
-                : 'SELECT id FROM tickets WHERE id = $1';
-        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
-
-        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
-        if (!ticketCheck.rowCount) {
+        if (!(await verificarAcessoChamado(ticketId, userId, role))) {
             res.status(404).json({ error: 'Chamado não encontrado' });
             return;
         }
@@ -392,14 +408,7 @@ export const listarComentarios = async (
         }
         const { id: userId, role } = claims;
 
-        const ticketCheckQuery =
-            role === 'usuario'
-                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
-                : 'SELECT id FROM tickets WHERE id = $1';
-        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
-
-        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
-        if (!ticketCheck.rowCount) {
+        if (!(await verificarAcessoChamado(ticketId, userId, role))) {
             res.status(404).json({ error: 'Chamado não encontrado' });
             return;
         }
@@ -504,14 +513,7 @@ export const listarHistorico = async (
         const { id: userId, role } = claims;
 
         // Mesmo escopo dos comentários: usuário comum só vê a trilha dos próprios chamados.
-        const ticketCheckQuery =
-            role === 'usuario'
-                ? 'SELECT id FROM tickets WHERE id = $1 AND user_id = $2'
-                : 'SELECT id FROM tickets WHERE id = $1';
-        const ticketCheckValues = role === 'usuario' ? [ticketId, userId] : [ticketId];
-
-        const ticketCheck = await pool.query<{ id: number }>(ticketCheckQuery, ticketCheckValues);
-        if (!ticketCheck.rowCount) {
+        if (!(await verificarAcessoChamado(ticketId, userId, role))) {
             res.status(404).json({ error: 'Chamado não encontrado' });
             return;
         }

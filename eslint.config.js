@@ -113,9 +113,9 @@ export default tseslint.config(
     },
 
     {
-        // Bootstrap do servidor: banners de inicialização usam console.log de propósito.
+        // Bootstrap do servidor e CLI de banco: mensagens no terminal usam console.log de propósito.
         name: 'supdesk/backend-bootstrap',
-        files: ['src/server.ts', 'src/swagger.ts'],
+        files: ['src/server.ts', 'src/swagger.ts', 'src/db/cli.ts'],
         rules: {
             'no-console': 'off',
         },

@@ -163,7 +163,7 @@ function ToastCard({
 
   return (
     <div
-      className={`toast toast--${toast.tipo}${toast.titulo ? ' toast--com-titulo' : ''}`}
+      className={`toast toast--${toast.tipo}`}
       role={isAlert ? 'alert' : 'status'}
       onMouseEnter={aoPausar}
       onMouseLeave={aoRetomar}

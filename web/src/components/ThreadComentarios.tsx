@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { comentarChamado } from '../lib/data';
 import { Icon } from './Icon';
 import { Spinner } from './Loading';
 import { useToast } from './Toast';
-import { txHora } from '../lib/types';
-import type { Comentario, EventoChamado, Role } from '../lib/types';
+import { lerUsuarioLocal, txHora } from '../lib/types';
+import type { Comentario, EventoChamado } from '../lib/types';
 
 type CampoErro = { msg?: string };
 
@@ -12,19 +12,6 @@ function validarComentario(msg: string): CampoErro {
   const e: CampoErro = {};
   if (!msg.trim()) e.msg = 'O comentário não pode estar vazio.';
   return e;
-}
-
-function autorPadrao(): { username: string; role: Role } {
-  try {
-    const raw = localStorage.getItem('supdesk_user');
-    if (raw) {
-      const u = JSON.parse(raw) as { username?: string; role?: Role };
-      if (u.username && u.role) return { username: u.username, role: u.role };
-    }
-  } catch {
-    // fallback quando localStorage estiver vazio ou inválido
-  }
-  return { username: 'você', role: 'usuario' };
 }
 
 type ItemTimeline =
@@ -49,19 +36,6 @@ export function ThreadComentarios({
   const [comentarioOtimista, setComentarioOtimista] = useState<Comentario | null>(null);
   const [erroOtimista, setErroOtimista] = useState<string | null>(null);
   const toast = useToast();
-
-  // Se o comentário oficial já chegou pela prop comentários, limpa o otimista.
-  useEffect(() => {
-    if (
-      comentarioOtimista &&
-      comentarios.some(
-        (c) =>
-          c.id === comentarioOtimista.id || c.message.trim() === comentarioOtimista.message.trim(),
-      )
-    ) {
-      setComentarioOtimista(null);
-    }
-  }, [comentarios, comentarioOtimista]);
 
   const comentariosExibidos = useMemo(() => {
     if (!comentarioOtimista) return comentarios;
@@ -113,7 +87,7 @@ export function ThreadComentarios({
     }
 
     const agora = new Date().toISOString();
-    const autor = autorPadrao();
+    const autor = lerUsuarioLocal('você', 'usuario');
     const otimista: Comentario = {
       id: Date.now(),
       message: msg.trim(),

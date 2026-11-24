@@ -7,6 +7,7 @@ import {
   chamadoAtrasado,
   filtrarChamadosTexto,
   formatarIntervalo,
+  lerUsuarioLocal,
   ordenarChamados,
   tempoDecorrido,
   txDate,
@@ -185,5 +186,20 @@ describe('filtros, ordenação e resumo de chamados', () => {
     expect(chamadoAtrasado(antigo, 'Aberto')).toBe(true);
     expect(chamadoAtrasado(antigo, 'Resolvido')).toBe(false);
     expect(chamadoAtrasado('invalido', 'Aberto')).toBe(false);
+  });
+
+  it('lê usuário local salvo no localStorage com fallback seguro', () => {
+    localStorage.clear();
+    expect(lerUsuarioLocal('padrao', 'analista')).toEqual({
+      username: 'padrao',
+      role: 'analista',
+    });
+
+    localStorage.setItem('supdesk_user', JSON.stringify({ username: 'ana.admin', role: 'admin' }));
+    expect(lerUsuarioLocal()).toEqual({ username: 'ana.admin', role: 'admin' });
+
+    localStorage.setItem('supdesk_user', '{json-invalido');
+    expect(lerUsuarioLocal()).toEqual({ username: 'você', role: 'usuario' });
+    localStorage.clear();
   });
 });

@@ -2,7 +2,11 @@ import type express from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../errors/AppError.js';
 import { logger, sanitizeForLog } from '../observability/logger.js';
-import { recordDbError, type ErrorMetricType } from '../observability/metrics.js';
+import {
+    mapStatusToErrorMetric,
+    recordDbError,
+    type ErrorMetricType,
+} from '../observability/metrics.js';
 import { markErrorRecorded, type ObservableRequest } from './observabilityMiddleware.js';
 
 export { sanitizeForLog };
@@ -92,27 +96,6 @@ const mapPostgresError = (
             };
         default:
             return null;
-    }
-};
-
-const mapStatusToErrorMetric = (statusCode: number): ErrorMetricType => {
-    switch (statusCode) {
-        case 400:
-            return 'validation_error';
-        case 401:
-            return 'unauthorized';
-        case 403:
-            return 'forbidden';
-        case 404:
-            return 'not_found';
-        case 409:
-            return 'conflict';
-        case 413:
-            return 'payload_too_large';
-        case 429:
-            return 'rate_limit';
-        default:
-            return statusCode >= 500 ? 'internal_error' : 'validation_error';
     }
 };
 

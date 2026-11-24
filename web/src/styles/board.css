@@ -43,6 +43,7 @@
 
 .board__card {
   display: block;
+  text-decoration: none;
   border: var(--hair) solid var(--hairline);
   border-radius: var(--radius-sm);
   background: var(--ground-0);

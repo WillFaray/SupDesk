@@ -1,21 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError } from './api';
 import { demoChamados, demoComentarios, demoHistorico, demoUsuarios } from './demo';
 import { IS_DEMO } from './auth';
 import {
   calcularResumoChamados,
   filtrarChamadosTexto,
+  lerUsuarioLocal,
   ordenarChamados,
   type Chamado,
   type Comentario,
   type EventoChamado,
   type FiltrosChamados,
   type ListaChamados,
-  type Role,
   type Usuario,
 } from './types';
-
-export const DEMO_LABEL = IS_DEMO;
 
 // Camada de dados: mesma interface para API real e modo demo (VITE_DEMO=true,
 // dados sintéticos rotulados com selo "Demo" na UI).
@@ -37,13 +35,16 @@ export function useChamados(filtros: FiltrosChamados = {}) {
   const [data, setData] = useState<ListaChamados | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const reqIdRef = useRef(0);
 
   const key = JSON.stringify(filtros);
 
   const carregar = useCallback(async () => {
+    const reqId = ++reqIdRef.current;
     setLoading(true);
     setError(null);
     try {
+      let resultado: ListaChamados;
       if (IS_DEMO) {
         await delay(280);
         const listaFiltrada = demoStatus(filtros);
@@ -51,27 +52,33 @@ export function useChamados(filtros: FiltrosChamados = {}) {
         const limite = Math.max(1, filtros.limit ?? 10);
         const inicio = (paginaAtual - 1) * limite;
         const paginados = listaFiltrada.slice(inicio, inicio + limite);
-        setData({
+        resultado = {
           paginaAtual,
           limite,
           total: listaFiltrada.length,
           totalPaginas: Math.max(1, Math.ceil(listaFiltrada.length / limite)),
           resumo: calcularResumoChamados(demoChamados),
           tickets: paginados,
-        });
+        };
       } else {
-        const r = await api.listarChamados(filtros);
-        setData(r);
+        resultado = await api.listarChamados(filtros);
       }
+      if (reqId !== reqIdRef.current) return;
+      setData(resultado);
     } catch (e) {
+      if (reqId !== reqIdRef.current) return;
       setError(e instanceof ApiError ? e.message : 'Falha ao carregar a fila');
     } finally {
-      setLoading(false);
+      if (reqId === reqIdRef.current) setLoading(false);
     }
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const reqIds = reqIdRef;
     void carregar();
+    return () => {
+      reqIds.current += 1;
+    };
   }, [carregar]);
 
   return { data, error, loading, recarregar: carregar };
@@ -83,8 +90,10 @@ export function useChamado(id: number) {
   const [historico, setHistorico] = useState<EventoChamado[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const reqIdRef = useRef(0);
 
   const carregar = useCallback(async () => {
+    const reqId = ++reqIdRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -92,57 +101,68 @@ export function useChamado(id: number) {
         await delay(280);
         const c = demoChamados.find((x) => x.id === id);
         if (!c) throw new ApiError('Chamado não encontrado', 404);
-        setData(c);
-        setComentarios(demoComentarios[id] ?? []);
-        setHistorico(demoHistorico[id] ?? []);
+        if (reqId !== reqIdRef.current) return;
+        setData({ ...c });
+        setComentarios([...(demoComentarios[id] ?? [])]);
+        setHistorico([...(demoHistorico[id] ?? [])]);
       } else {
         const [c, cmts, hist] = await Promise.all([
           api.obterChamado(id),
           api.listarComentarios(id),
           api.listarHistorico(id).catch(() => []),
         ]);
+        if (reqId !== reqIdRef.current) return;
         setData(c);
         setComentarios(cmts);
         setHistorico(hist);
       }
     } catch (e) {
+      if (reqId !== reqIdRef.current) return;
       setError(e instanceof ApiError ? e.message : 'Falha ao carregar o chamado');
     } finally {
-      setLoading(false);
+      if (reqId === reqIdRef.current) setLoading(false);
     }
   }, [id]);
 
   useEffect(() => {
+    const reqIds = reqIdRef;
     void carregar();
+    return () => {
+      reqIds.current += 1;
+    };
   }, [carregar]);
 
   return { data, comentarios, historico, error, loading, recarregar: carregar };
 }
+
 export function useUsuarios() {
   const [data, setData] = useState<Usuario[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const reqIdRef = useRef(0);
 
   const carregar = useCallback(async () => {
+    const reqId = ++reqIdRef.current;
     setLoading(true);
     setError(null);
     try {
-      if (IS_DEMO) {
-        await delay(300);
-        setData(demoUsuarios);
-      } else {
-        const r = await api.listarUsuarios();
-        setData(r);
-      }
+      const r = IS_DEMO ? (await delay(300), [...demoUsuarios]) : await api.listarUsuarios();
+      if (reqId !== reqIdRef.current) return;
+      setData(r);
     } catch (e) {
+      if (reqId !== reqIdRef.current) return;
       setError(e instanceof ApiError ? e.message : 'Falha ao carregar usuários');
     } finally {
-      setLoading(false);
+      if (reqId === reqIdRef.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    const reqIds = reqIdRef;
     void carregar();
+    return () => {
+      reqIds.current += 1;
+    };
   }, [carregar]);
 
   return { data, error, loading, recarregar: carregar };
@@ -154,14 +174,6 @@ export async function listarComentarios(id: number): Promise<Comentario[]> {
     return demoComentarios[id] ?? [];
   }
   return api.listarComentarios(id);
-}
-
-export async function listarHistorico(id: number): Promise<EventoChamado[]> {
-  if (IS_DEMO) {
-    await delay(120);
-    return demoHistorico[id] ?? [];
-  }
-  return api.listarHistorico(id);
 }
 
 export async function atualizarStatus(
@@ -181,16 +193,7 @@ export async function atualizarStatus(
   const agora = new Date().toISOString();
   c.updated_at = agora;
 
-  let respNome = responsavel;
-  if (!respNome) {
-    try {
-      const raw = localStorage.getItem('supdesk_user');
-      if (raw) respNome = (JSON.parse(raw) as { username?: string }).username;
-    } catch {
-      // fallback quando localStorage estiver vazio ou inválido
-    }
-  }
-  const autorNome = respNome ?? 'carlos.menezes';
+  const autorNome = responsavel ?? lerUsuarioLocal('carlos.menezes', 'analista').username;
 
   if (status === 'Em andamento') {
     c.responsavel = autorNome;
@@ -247,6 +250,7 @@ export async function criarChamado(dados: {
   if (!IS_DEMO) return api.criarChamado(dados);
   await delay(340);
   const agora = new Date().toISOString();
+  const autor = lerUsuarioLocal('você', 'usuario');
   const c: Chamado = {
     id: ++demoSeq,
     title: dados.title,
@@ -256,7 +260,7 @@ export async function criarChamado(dados: {
     category: dados.category as Chamado['category'],
     created_at: agora,
     updated_at: agora,
-    autor_do_chamado: 'você',
+    autor_do_chamado: autor.username,
     responsavel: null,
     primeiro_atendimento_em: null,
     resolvido_em: null,
@@ -272,8 +276,8 @@ export async function criarChamado(dados: {
       status_novo: 'Aberto',
       detalhe: null,
       created_at: agora,
-      autor: 'você',
-      perfil_do_autor: 'usuario',
+      autor: autor.username,
+      perfil_do_autor: autor.role,
     },
   ];
   return { ...c };
@@ -282,24 +286,13 @@ export async function criarChamado(dados: {
 export async function comentarChamado(id: number, message: string): Promise<Comentario> {
   if (!IS_DEMO) return (await api.comentar(id, message)).comment;
   await delay(220);
-  let autorNome = 'você';
-  let autorPerfil: Role = 'usuario';
-  try {
-    const raw = localStorage.getItem('supdesk_user');
-    if (raw) {
-      const u = JSON.parse(raw) as { username?: string; role?: Role };
-      if (u.username) autorNome = u.username;
-      if (u.role) autorPerfil = u.role;
-    }
-  } catch {
-    // fallback quando localStorage estiver vazio ou inválido
-  }
+  const autor = lerUsuarioLocal('você', 'usuario');
   const c: Comentario = {
     id: ++demoSeq,
     message,
     created_at: new Date().toISOString(),
-    autor_do_comentario: autorNome,
-    perfil_do_autor: autorPerfil,
+    autor_do_comentario: autor.username,
+    perfil_do_autor: autor.role,
   };
   demoComentarios[id] = [...(demoComentarios[id] ?? []), c];
   return c;
@@ -311,16 +304,4 @@ export async function excluirChamado(id: number): Promise<void> {
   const i = demoChamados.findIndex((x) => x.id === id);
   if (i === -1) throw new ApiError('Chamado não encontrado', 404);
   demoChamados.splice(i, 1);
-}
-
-export function useContagemStatus() {
-  const { data } = useChamados({ limit: 100 });
-  return useMemo(() => {
-    const contagem = { Aberto: 0, 'Em andamento': 0, Resolvido: 0 } as Record<
-      Chamado['status'],
-      number
-    >;
-    for (const c of data?.tickets ?? []) contagem[c.status] += 1;
-    return contagem;
-  }, [data]);
 }

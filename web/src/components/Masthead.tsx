@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
@@ -12,16 +12,37 @@ function temaAtual(): Tema {
   return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 }
 
+function aplicarTema(proximo: Tema) {
+  document.documentElement.dataset.theme = proximo;
+  const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.content = proximo === 'dark' ? '#0f1115' : '#f6f7f9';
+}
+
 export function Masthead() {
   const { user, sair } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [tema, setTema] = useState<Tema>(temaAtual);
 
+  useEffect(() => {
+    function aoMudarStorage(e: StorageEvent) {
+      if (e.key === 'supdesk-theme' && (e.newValue === 'dark' || e.newValue === 'light')) {
+        aplicarTema(e.newValue);
+        setTema(e.newValue);
+      }
+    }
+    window.addEventListener('storage', aoMudarStorage);
+    return () => window.removeEventListener('storage', aoMudarStorage);
+  }, []);
+
   function alternarTema() {
     const proximo: Tema = tema === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = proximo;
-    localStorage.setItem('supdesk-theme', proximo);
+    aplicarTema(proximo);
+    try {
+      localStorage.setItem('supdesk-theme', proximo);
+    } catch {
+      // ignora erro caso armazenamento esteja bloqueado
+    }
     setTema(proximo);
   }
 
@@ -31,7 +52,7 @@ export function Masthead() {
         <span className="masthead__mark">SupDesk</span>
       </div>
 
-      <div className="masthead__search" role="search">
+      <div className="masthead__search">
         <SearchBox />
       </div>
 

@@ -10,6 +10,7 @@ import { EmptyState } from '../components/EmptyState';
 import {
   chamadoAtrasado,
   filtrarChamadosTexto,
+  tempoDecorrido,
   type Categoria,
   type Comentario,
   type Prioridade,
@@ -24,18 +25,10 @@ const CATEGORIAS_PAINEL: (Categoria | 'Todas')[] = [
   'Outros',
 ];
 
-function espera(from: string): string {
-  const min = Math.max(1, Math.round((Date.now() - new Date(from).getTime()) / 60_000));
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h} h`;
-  return `${Math.floor(h / 24)} d`;
-}
-
 export function BoardView() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data, error, loading } = useChamados({ status: 'Em andamento', limit: 100 });
+  const { data, error, loading, recarregar } = useChamados({ status: 'Em andamento', limit: 100 });
   const [chats, setChats] = useState<Record<number, Comentario[]>>({});
   const [busca, setBusca] = useState('');
   const [categoria, setCategoria] = useState<Categoria | 'Todas'>('Todas');
@@ -159,10 +152,15 @@ export function BoardView() {
           titulo="Erro ao carregar o painel"
           descricao="Não foi possível obter a lista de chamados em andamento do servidor."
           acaoPrimaria={{
+            label: 'Tentar novamente',
+            onClick: () => void recarregar(),
+            icone: 'refresh',
+            variante: 'primaria',
+          }}
+          acaoSecundaria={{
             label: 'Ir para a fila',
             onClick: () => navigate('/chamados'),
             icone: 'queue',
-            variante: 'primaria',
           }}
         />
       )}
@@ -227,7 +225,7 @@ export function BoardView() {
                       <div className="board__foot">
                         <span className="board__meta">{c.autor_do_chamado}</span>
                         <span className="board__meta board__meta--espera">
-                          <Icon name="clock" size={12} /> {espera(c.created_at)}
+                          <Icon name="clock" size={12} /> {tempoDecorrido(c.created_at)}
                         </span>
                       </div>
                     </Link>

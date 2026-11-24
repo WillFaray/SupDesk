@@ -3,6 +3,7 @@ import type express from 'express';
 import type { AuthRequest } from './authMiddleware.js';
 import { logger } from '../observability/logger.js';
 import {
+    mapStatusToErrorMetric,
     normalizeRoutePath,
     recordError,
     recordHttpRequest,
@@ -34,28 +35,6 @@ export const markErrorRecorded = (res: express.Response, type: ErrorMetricType):
     }
 };
 
-const defaultErrorTypeForStatus = (statusCode: number): ErrorMetricType | null => {
-    if (statusCode < 400) return null;
-    switch (statusCode) {
-        case 400:
-            return 'validation_error';
-        case 401:
-            return 'unauthorized';
-        case 403:
-            return 'forbidden';
-        case 404:
-            return 'not_found';
-        case 409:
-            return 'conflict';
-        case 413:
-            return 'payload_too_large';
-        case 429:
-            return 'rate_limit';
-        default:
-            return statusCode >= 500 ? 'internal_error' : 'validation_error';
-    }
-};
-
 export const observabilityMiddleware = (
     req: ObservableRequest,
     res: express.Response,
@@ -76,9 +55,8 @@ export const observabilityMiddleware = (
 
         recordHttpRequest(req.method, rawPath, statusCode, durationMs);
 
-        const inferredError = defaultErrorTypeForStatus(statusCode);
-        if (inferredError) {
-            markErrorRecorded(res, inferredError);
+        if (statusCode >= 400) {
+            markErrorRecorded(res, mapStatusToErrorMetric(statusCode));
         }
 
         const logContext = {

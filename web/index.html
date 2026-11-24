@@ -9,11 +9,16 @@
     <script>
       // Tema: opt-in salvo; sem escolha, segue o sistema. Executa antes do paint.
       (function () {
-        var t = localStorage.getItem('supdesk-theme');
+        var t = null;
+        try {
+          t = localStorage.getItem('supdesk-theme');
+        } catch (e) {}
         if (t !== 'dark' && t !== 'light') {
           t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         }
         document.documentElement.dataset.theme = t;
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.content = t === 'dark' ? '#0f1115' : '#f6f7f9';
       })();
     </script>
   </head>

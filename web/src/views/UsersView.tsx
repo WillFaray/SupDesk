@@ -4,7 +4,7 @@ import { Loading } from '../components/Loading';
 import { EmptyState } from '../components/EmptyState';
 import { txDate } from '../lib/types';
 export function UsersView() {
-  const { data, error, loading } = useUsuarios();
+  const { data, error, loading, recarregar } = useUsuarios();
 
   return (
     <div>
@@ -24,8 +24,8 @@ export function UsersView() {
           titulo="Erro ao carregar usuários"
           descricao={error}
           acaoPrimaria={{
-            label: 'Recarregar página',
-            onClick: () => window.location.reload(),
+            label: 'Tentar novamente',
+            onClick: () => void recarregar(),
             icone: 'refresh',
             variante: 'primaria',
           }}

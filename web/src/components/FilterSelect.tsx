@@ -18,6 +18,7 @@ export function FilterSelect<T extends string>({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!aberto) return;
     function fora(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setAberto(false);
     }
@@ -30,7 +31,7 @@ export function FilterSelect<T extends string>({
       document.removeEventListener('mousedown', fora);
       document.removeEventListener('keydown', esc);
     };
-  }, []);
+  }, [aberto]);
 
   const atual = opcoes.find((o) => o.valor === valor);
 
@@ -44,7 +45,8 @@ export function FilterSelect<T extends string>({
         aria-label={label}
         onClick={() => setAberto((a) => !a)}
       >
-        {atual?.label ?? label}
+        <span className="fselect__prefix">{label}:</span>
+        <span>{atual?.label ?? label}</span>
         <Icon name={aberto ? 'up' : 'down'} size={13} />
       </button>
 

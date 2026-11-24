@@ -47,7 +47,9 @@ export function WorkflowStepper({ chamado, statusAtual }: WorkflowStepperProps) 
                 Aberto por <strong>{chamado.autor_do_chamado}</strong>
               </p>
               <div className="stepper__meta">
-                <Icon name="clock" size={11} /> {txHora(chamado.created_at)}
+                <span className="stepper__meta-item">
+                  <Icon name="clock" size={11} /> {txHora(chamado.created_at)}
+                </span>
               </div>
             </div>
           </li>
@@ -95,17 +97,19 @@ export function WorkflowStepper({ chamado, statusAtual }: WorkflowStepperProps) 
               <div className="stepper__meta">
                 {chamado.primeiro_atendimento_em ? (
                   <>
-                    <Icon name="bolt" size={11} /> Assumido em{' '}
-                    {txHora(chamado.primeiro_atendimento_em)}
+                    <span className="stepper__meta-item">
+                      <Icon name="bolt" size={11} /> Assumido em{' '}
+                      {txHora(chamado.primeiro_atendimento_em)}
+                    </span>
                     {tempoAtePrimeiro !== '—' && (
-                      <span className="stepper__tempo">· Espera: {tempoAtePrimeiro}</span>
+                      <span className="stepper__tempo">Espera: {tempoAtePrimeiro}</span>
                     )}
                   </>
                 ) : (
-                  <>
+                  <span className="stepper__meta-item">
                     <Icon name="clock" size={11} /> Em triagem há{' '}
                     {tempoDecorrido(chamado.created_at)}
-                  </>
+                  </span>
                 )}
               </div>
             </div>
@@ -146,16 +150,18 @@ export function WorkflowStepper({ chamado, statusAtual }: WorkflowStepperProps) 
               <div className="stepper__meta">
                 {etapa3Completa && chamado.resolvido_em ? (
                   <>
-                    <Icon name="clock" size={11} /> Concluído em {txHora(chamado.resolvido_em)}
+                    <span className="stepper__meta-item">
+                      <Icon name="clock" size={11} /> Concluído em {txHora(chamado.resolvido_em)}
+                    </span>
                     {tempoTotal !== '—' && (
-                      <span className="stepper__tempo">· Atendimento total: {tempoTotal}</span>
+                      <span className="stepper__tempo">Atendimento total: {tempoTotal}</span>
                     )}
                   </>
                 ) : isEmAndamento ? (
-                  <>
+                  <span className="stepper__meta-item">
                     <Icon name="clock" size={11} /> Em atendimento há{' '}
                     {tempoDecorrido(chamado.primeiro_atendimento_em ?? chamado.created_at)}
-                  </>
+                  </span>
                 ) : (
                   'Aguardando início'
                 )}

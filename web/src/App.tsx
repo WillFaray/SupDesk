@@ -1,5 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { RouteErrorBoundary } from './components/ErrorBoundary';
 import { RoleGuard } from './components/RoleGuard';
@@ -10,7 +10,23 @@ import { TicketDetailView } from './views/TicketDetailView';
 import { NewTicketView } from './views/NewTicketView';
 import { UsersView } from './views/UsersView';
 
+function tituloDaRota(pathname: string): string {
+  if (pathname === '/login') return 'Acesso · SupDesk';
+  if (pathname === '/chamados/novo') return 'Novo chamado · SupDesk';
+  const matchDetalhe = /^\/chamados\/(\d+)$/.exec(pathname);
+  if (matchDetalhe) return `Chamado #${matchDetalhe[1]} · SupDesk`;
+  if (pathname === '/andamento') return 'Meu painel · SupDesk';
+  if (pathname === '/usuarios') return 'Usuários · SupDesk';
+  return 'Chamados · SupDesk';
+}
+
 export function App() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    document.title = tituloDaRota(pathname);
+  }, [pathname]);
+
   return (
     <Routes>
       <Route

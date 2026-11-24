@@ -74,5 +74,7 @@ const swaggerSpec = swaggerJSDoc(options);
 
 export const setupSwagger = (app: Express) => {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-    console.log(`📄 Documentação rodando em http://localhost:${port}/api-docs`);
+    if (!process.env.VITEST) {
+        console.log(`📄 Documentação rodando em http://localhost:${port}/api-docs`);
+    }
 };

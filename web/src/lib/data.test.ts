@@ -10,7 +10,6 @@ import {
   listarComentarios,
   useChamado,
   useChamados,
-  useContagemStatus,
   useUsuarios,
 } from './data';
 import { api, ApiError } from './api';
@@ -170,27 +169,6 @@ describe('useChamado', () => {
     const { result } = renderHook(() => useChamado(999));
 
     await waitFor(() => expect(result.current.error).toBe('Chamado não encontrado'));
-  });
-});
-
-describe('useContagemStatus', () => {
-  it('conta os chamados por status do painel', async () => {
-    vi.mocked(api.listarChamados).mockResolvedValue({
-      paginaAtual: 1,
-      limite: 100,
-      total: 3,
-      tickets: [chamado(1), chamado(2), chamado(3, 'Resolvido')],
-    });
-
-    const { result } = renderHook(() => useContagemStatus());
-
-    await waitFor(() =>
-      expect(result.current).toEqual({
-        Aberto: 2,
-        'Em andamento': 0,
-        Resolvido: 1,
-      }),
-    );
   });
 });
 

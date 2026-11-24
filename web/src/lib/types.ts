@@ -216,3 +216,25 @@ export function txHora(iso: string): string {
     minute: '2-digit',
   });
 }
+
+/**
+ * Lê o usuário autenticado salvo no localStorage com fallback seguro.
+ */
+export function lerUsuarioLocal(
+  fallbackNome = 'você',
+  fallbackRole: Role = 'usuario',
+): { username: string; role: Role } {
+  try {
+    const raw = localStorage.getItem('supdesk_user');
+    if (raw) {
+      const u = JSON.parse(raw) as { username?: string; role?: Role };
+      return {
+        username: u.username || fallbackNome,
+        role: u.role || fallbackRole,
+      };
+    }
+  } catch {
+    // fallback quando localStorage estiver vazio ou inválido
+  }
+  return { username: fallbackNome, role: fallbackRole };
+}

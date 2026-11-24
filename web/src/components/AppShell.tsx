@@ -12,10 +12,13 @@ export function AppShell() {
 
   return (
     <div className="app-chrome">
+      <a href="#conteudo" className="skip-link">
+        Pular para o conteúdo principal
+      </a>
       <Masthead />
       <div className="stage">
         <Rail />
-        <main className="stage__main" id="conteudo">
+        <main className="stage__main" id="conteudo" tabIndex={-1}>
           <Outlet />
         </main>
       </div>

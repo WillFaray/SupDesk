@@ -58,9 +58,12 @@ export function Modal({
 
   useEffect(() => {
     if (aberto && contentRef.current) {
-      const focavel = contentRef.current.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
+      if (contentRef.current.contains(document.activeElement)) return;
+      const focavel =
+        contentRef.current.querySelector<HTMLElement>('[autofocus]') ??
+        contentRef.current.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
       focavel?.focus();
     }
   }, [aberto]);

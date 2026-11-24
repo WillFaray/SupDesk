@@ -92,6 +92,27 @@ let dbLastCheckAt: string | null = null;
 let dbLastLatencyMs: number | null = null;
 let dbLastStatus: 'up' | 'down' | 'unknown' = 'unknown';
 
+export const mapStatusToErrorMetric = (statusCode: number): ErrorMetricType => {
+    switch (statusCode) {
+        case 400:
+            return 'validation_error';
+        case 401:
+            return 'unauthorized';
+        case 403:
+            return 'forbidden';
+        case 404:
+            return 'not_found';
+        case 409:
+            return 'conflict';
+        case 413:
+            return 'payload_too_large';
+        case 429:
+            return 'rate_limit';
+        default:
+            return statusCode >= 500 ? 'internal_error' : 'validation_error';
+    }
+};
+
 /**
  * Normaliza o caminho da requisição para evitar cardinalidade infinita
  * por IDs ou segmentos variáveis nas métricas por rota.
@@ -101,12 +122,12 @@ export const normalizeRoutePath = (rawPath: string): string => {
     const collapsed = withoutQuery.replace(/\/+/g, '/');
     if (collapsed.startsWith('/chamados/')) {
         const parts = collapsed.split('/').filter(Boolean);
-        // /chamados/:id ou /chamados/:id/comentarios
+        // /chamados/:id, /chamados/:id/comentarios ou /chamados/:id/historico
         if (parts.length === 2) {
             return '/chamados/:id';
         }
-        if (parts.length === 3 && parts[2] === 'comentarios') {
-            return '/chamados/:id/comentarios';
+        if (parts.length === 3 && (parts[2] === 'comentarios' || parts[2] === 'historico')) {
+            return `/chamados/:id/${parts[2]}`;
         }
     }
     return collapsed.length > 1 && collapsed.endsWith('/') ? collapsed.slice(0, -1) : collapsed;
